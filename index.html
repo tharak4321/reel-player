@@ -1,104 +1,354 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reel Player</title>
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Reel Rewards</title>
 
-    .reel-container {
-      position: relative;
-      width: 100%;
-      max-width: 420px;
-      aspect-ratio: 9 / 16;
-      background: #000;
-      overflow: hidden;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
+<!-- Monetag SDK (keeps here as requested) -->
+<script src="//libtl.com/sdk.js" data-zone="10078019" data-sdk="show_10078019"></script>
 
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .play-btn {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 70px;
-      height: 70px;
-      background: rgba(255, 255, 255, 0.8);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .play-btn svg {
-      width: 28px;
-      height: 28px;
-      fill: #000;
-    }
-
-    .play-btn:hover {
-      background: rgba(255, 255, 255, 1);
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
+<style>
+  :root{
+    --bg:#0f1720; --card:#161922; --accent:#2196F3; --accent2:#ff4757; --muted:#9aa4b2;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#fff;-webkit-font-smoothing:antialiased;}
+  .wrap{box-sizing:border-box;max-width:430px;margin:18px auto;padding:14px;min-height:calc(100vh - 36px);display:flex;flex-direction:column;gap:12px;}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:14px;padding:12px;box-shadow:0 6px 20px rgba(0,0,0,0.5);}
+  .header{display:flex;justify-content:space-between;gap:8px;align-items:center;}
+  .stat{display:flex;flex-direction:column;align-items:center;}
+  .stat .num{font-weight:700;font-size:1.4rem;}
+  .stat .label{font-size:0.8rem;color:var(--muted);margin-top:2px;}
+  .player-area{position:relative;background:#000;border-radius:12px;overflow:hidden;min-height:56vw; /* mobile-friendly aspect */ display:flex;align-items:center;justify-content:center;}
+  video{width:100%;height:100%;object-fit:cover;display:block;}
+  .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;color:var(--muted);font-size:1rem}
+  .controls{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+  .btn{width:100%;padding:12px;border-radius:10px;border:0;font-weight:600;font-size:1rem;cursor:pointer}
+  .btn-primary{background:linear-gradient(90deg,var(--accent),#21cbf3);color:#fff}
+  .btn-green{background:linear-gradient(90deg,#4CAF50,#2FA84F);color:#fff}
+  .small{text-align:center;color:var(--muted);font-size:0.9rem}
+  /* Play/Pause center button */
+  #playPauseBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;display:none;width:68px;height:68px;border-radius:50%;border:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:0 6px 20px rgba(0,0,0,0.6);cursor:pointer}
+  /* Confetti */
+  .confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:9999}
+  .confetti{position:absolute;width:8px;height:12px;opacity:0.95;border-radius:2px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}} 
+  /* modal */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:2000}
+  .modal.show{display:flex}
+  .modal-card{background:#fff;color:#111;padding:18px;border-radius:12px;max-width:92%;text-align:center}
+  a.link{color:var(--accent2);font-weight:700}
+  /* responsive tweaks */
+  @media(min-width:760px){ .wrap{margin:28px auto;min-height:640px} .player-area{min-height:480px} }
+</style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="card header">
+      <div class="stat">
+        <div class="num" id="points">0</div>
+        <div class="label">Points</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="streak">0</div>
+        <div class="label">Streak</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="left">3</div>
+        <div class="label">Reels left</div>
+      </div>
+    </div>
 
-  <div class="reel-container">
-    <video id="reel" preload="metadata" playsinline>
-      <source src="https://desidamaka.site/wp-content/uploads/2025/10/mallu-maria-romance.mp4" type="video/mp4">
-      Your browser does not support HTML5 video.
-    </video>
-    <div class="play-btn" id="playButton">
-      <svg viewBox="0 0 24 24">
-        <path d="M8 5v14l11-7z"></path>
-      </svg>
+    <div class="card player-area" id="playerCard" aria-label="Reel player">
+      <video id="reelVideo" playsinline webkit-playsinline preload="metadata"></video>
+
+      <div class="placeholder" id="placeholder">
+        <div>
+          <strong>Watch short reels to earn points</strong>
+          <div style="height:8px"></div>
+          <div class="small">Tap "Watch Reel" to start (ads shown before play)</div>
+        </div>
+      </div>
+
+      <button id="playPauseBtn" aria-label="Play or Pause">▶</button>
+    </div>
+
+    <div class="card controls">
+      <div class="small">Daily free reels: <strong id="freeCountText">3</strong></div>
+      <button id="watchBtn" class="btn btn-primary">Watch Reel</button>
+      <button id="bonusBtn" class="btn btn-green" style="display:none">Bonus Reel (Watch Ad)</button>
     </div>
   </div>
 
-  <script>
-    const reel = document.getElementById('reel');
-    const playButton = document.getElementById('playButton');
+  <!-- Confetti container -->
+  <div class="confetti-wrap" id="confettiWrap"></div>
 
-    playButton.addEventListener('click', () => {
-      if (reel.paused) {
-        reel.play().catch(err => console.log('Autoplay blocked:', err));
-        playButton.classList.add('hidden');
-      } else {
-        reel.pause();
-        playButton.classList.remove('hidden');
-      }
+  <!-- Unlock modal -->
+  <div id="unlockModal" class="modal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3>🎉 UNLOCKED!</h3>
+      <p>You reached 250 points — here's your premium file:</p>
+      <p><a id="premiumLink" class="link" href="#" target="_blank" rel="noopener">Get file</a></p>
+      <div style="height:10px"></div>
+      <button id="closeModal" class="btn">Close</button>
+    </div>
+  </div>
+
+<script>
+/*
+  Reel Rewards - Single-file app
+  - Uses Monetag function show_10078019() (if available) before every reel play
+  - Picks a random video from REEL_VIDEOS
+  - Points, streak, daily limit persist in localStorage
+  - Play/Pause center button, mobile friendly
+  - Designed to be uploaded to GitHub and deployed on Vercel/Netlify
+*/
+
+/* ----- CONFIG ----- */
+const REELS_PER_DAY = 3;
+const POINTS_THRESHOLD = 250;
+const REEL_VIDEOS = [
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10892@27-09-2023_20-44-59.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10891@27-09-2023_20-44-55.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10890@27-09-2023_20-44-41.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10889@27-09-2023_20-44-26.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10886@27-09-2023_20-44-16.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10879@27-09-2023_20-43-52.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10883@27-09-2023_20-44-12.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10876@27-09-2023_20-43-17.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_10875@27-09-2023_20-43-16.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11585@03-11-2023_01-13-35.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11586@03-11-2023_01-13-40.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11587@03-11-2023_01-13-54.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11589@03-11-2023_01-14-29.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11591@03-11-2023_01-14-47.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11594@03-11-2023_01-15-43.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11595@03-11-2023_01-15-57.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11594@03-11-2023_01-15-43-1.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11597@03-11-2023_01-16-20.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11599@03-11-2023_01-16-47.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11600@03-11-2023_01-16-59.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11602@03-11-2023_01-17-03.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11604@03-11-2023_01-17-05.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11612@06-11-2023_23-23-51.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11859@10-11-2023_19-45-15.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11854@10-11-2023_19-45-11.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11855@10-11-2023_19-45-12.mp4',
+  'https://desidamaka.site/wp-content/uploads/2025/10/video_11845@10-11-2023_19-45-00.mp4'
+];
+const PREMIUM_FILES = [
+  'https://example.com/premium/file1.zip',
+  'https://example.com/premium/file2.pdf',
+  'https://example.com/premium/file3.mp4'
+];
+
+/* ----- DOM ----- */
+const pointsEl = document.getElementById('points');
+const streakEl = document.getElementById('streak');
+const leftEl = document.getElementById('left');
+const freeCountText = document.getElementById('freeCountText');
+
+const watchBtn = document.getElementById('watchBtn');
+const bonusBtn = document.getElementById('bonusBtn');
+const reelVideo = document.getElementById('reelVideo');
+const placeholder = document.getElementById('placeholder');
+const playPauseBtn = document.getElementById('playPauseBtn');
+
+const unlockModal = document.getElementById('unlockModal');
+const premiumLink = document.getElementById('premiumLink');
+const closeModal = document.getElementById('closeModal');
+
+const confettiWrap = document.getElementById('confettiWrap');
+
+/* ----- STATE ----- */
+let state = { points:0, streak:0, reelsViewedToday:0, lastVisitDate:null };
+const STORAGE_KEY = 'rv_reel_state_v1';
+
+/* ----- helpers ----- */
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+function loadState(){ try{ const s = JSON.parse(localStorage.getItem(STORAGE_KEY)); if(s) state = s; }catch(e){} }
+function todayString(){ return new Date().toDateString(); }
+function randFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function showConfetti(){ for(let i=0;i<50;i++){ const c=document.createElement('div'); c.className='confetti'; c.style.left=(Math.random()*100)+'vw'; c.style.background=`hsl(${Math.random()*360},85%,55%)`; c.style.top=((-10)+Math.random()*10)+'vh'; c.style.animationDuration=(2.5+Math.random()*2.5)+'s'; confettiWrap.appendChild(c); setTimeout(()=>c.remove(),5000); } }
+
+/* ----- daily reset & UI ----- */
+function dailyResetIfNeeded(){
+  const today = todayString();
+  if(state.lastVisitDate !== today){
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    state.streak = (state.lastVisitDate === yesterday.toDateString()) ? (state.streak || 0) + 1 : 1;
+    state.reelsViewedToday = 0;
+    state.lastVisitDate = today;
+    saveState();
+  }
+}
+function updateUI(){
+  pointsEl.textContent = state.points;
+  streakEl.textContent = state.streak;
+  leftEl.textContent = Math.max(0, REELS_PER_DAY - state.reelsViewedToday);
+  freeCountText.textContent = Math.max(0, REELS_PER_DAY - state.reelsViewedToday);
+  watchBtn.disabled = state.reelsViewedToday >= REELS_PER_DAY;
+  bonusBtn.style.display = (state.reelsViewedToday >= REELS_PER_DAY) ? 'block' : 'none';
+}
+
+/* ----- Ad wrapper: call Monetag then play -----
+   Monetag exposes show_10078019() per your earlier messages.
+   If not available, fallback to playing immediately.
+*/
+function showAdThenPlay(isBonus=false){
+  // Ensure this happens only after a user gesture (button click) — watchBtn already called from click event.
+  if (typeof show_10078019 === 'function') {
+    try {
+      // Monetag returns a promise — handle success/failure
+      show_10078019().then(()=> {
+        playReel(isBonus);
+      }).catch((err)=> {
+        console.warn('Ad failed or closed:', err);
+        playReel(isBonus);
+      });
+    } catch(e) {
+      console.warn('Ad call threw:', e);
+      playReel(isBonus);
+    }
+  } else {
+    // SDK not present — proceed to play
+    playReel(isBonus);
+  }
+}
+
+/* ----- play logic: handles mobile safely ---- */
+let waitingForUserUnmute = false;
+function playReel(isBonus=false){
+  // pick random video
+  const url = randFrom(REEL_VIDEOS);
+  placeholder.style.display = 'none';
+  reelVideo.src = url;
+  reelVideo.style.display = 'block';
+
+  // For mobile autoplay policies: attempt to play, if rejected allow user interaction to unmute/play
+  // We will attempt to play with sound because this action originates from a user click (watchBtn)
+  reelVideo.muted = false; // user click initiated - browsers should allow playback with sound
+  const playPromise = reelVideo.play();
+
+  // show center button
+  playPauseBtn.style.display = 'flex';
+  playPauseBtn.textContent = '⏸';
+
+  // if play promise rejected (some mobile may still block until gesture on video), fallback to muted play then wait for user tap
+  if (playPromise && typeof playPromise.catch === 'function') {
+    playPromise.catch((err) => {
+      // try muted autoplay as fallback, then set waiting flag to allow unmute on next tap
+      console.warn('Play with sound blocked, falling back to muted. Error:', err);
+      reelVideo.muted = true;
+      reelVideo.play().catch(()=>{ /* ignore */ });
+      waitingForUserUnmute = true;
+
+      // Listen for user touch/click once to unmute and resume with sound
+      const unlock = () => {
+        try { reelVideo.muted = false; reelVideo.play().catch(()=>{}); } catch(e){}
+        waitingForUserUnmute = false;
+        document.removeEventListener('click', unlock);
+        document.removeEventListener('touchstart', unlock);
+      };
+      document.addEventListener('click', unlock, { once: true });
+      document.addEventListener('touchstart', unlock, { once: true });
     });
+  }
 
-    reel.addEventListener('pause', () => {
-      playButton.classList.remove('hidden');
-    });
+  // play/pause handler
+  playPauseBtn.onclick = () => {
+    if (!reelVideo.paused) {
+      reelVideo.pause();
+      playPauseBtn.textContent = '▶';
+    } else {
+      reelVideo.play().catch(()=>{});
+      playPauseBtn.textContent = '⏸';
+    }
+  };
 
-    reel.addEventListener('play', () => {
-      playButton.classList.add('hidden');
-    });
-  </script>
+  // when finished awarding points etc
+  reelVideo.onended = () => {
+    // hide video, show placeholder
+    reelVideo.style.display = 'none';
+    reelVideo.src = ''; // release resource
+    placeholder.style.display = 'flex';
+    playPauseBtn.style.display = 'none';
 
+    // award points
+    const pointsWon = 15 + Math.floor(Math.random()*26); // 15-40
+    state.points = (state.points || 0) + pointsWon;
+    if (!isBonus) state.reelsViewedToday = (state.reelsViewedToday || 0) + 1;
+
+    // show simple points feedback (small toast)
+    showPointsToast('+' + pointsWon);
+
+    // check unlock
+    if (state.points >= POINTS_THRESHOLD) {
+      const link = PREMIUM_FILES[Math.floor(Math.random()*PREMIUM_FILES.length)];
+      premiumLink.href = link;
+      unlockModal.classList.add('show');
+      showConfetti();
+      // reset points (per your flow)
+      state.points = 0;
+    }
+
+    saveState();
+    updateUI();
+  };
+}
+
+/* small toast for points */
+function showPointsToast(text){
+  const d = document.createElement('div');
+  d.style.position = 'absolute';
+  d.style.left = '50%';
+  d.style.top = '35%';
+  d.style.transform = 'translateX(-50%)';
+  d.style.background = 'linear-gradient(90deg,#ffd54f,#ffb74d)';
+  d.style.color = '#111';
+  d.style.padding = '8px 12px';
+  d.style.borderRadius = '8px';
+  d.style.fontWeight = '700';
+  d.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+  d.textContent = text;
+  document.body.appendChild(d);
+  setTimeout(()=> d.style.opacity = '0', 1200);
+  setTimeout(()=> d.remove(), 2000);
+}
+
+/* ----- event bindings ----- */
+watchBtn.addEventListener('click', (e) => {
+  // user initiated - call ad then play
+  showAdThenPlay(false);
+});
+
+bonusBtn.addEventListener('click', (e) => {
+  // bonus reel also triggers ad then play
+  showAdThenPlay(true);
+});
+
+/* modal close */
+closeModal.addEventListener('click', () => {
+  unlockModal.classList.remove('show');
+});
+
+/* init */
+(function init(){
+  loadState();
+  dailyResetIfNeeded();
+  updateUI();
+
+  // make sure placeholder & play button visibility are correct on load
+  placeholder.style.display = 'flex';
+  reelVideo.style.display = 'none';
+  playPauseBtn.style.display = 'none';
+
+  // Make video element behave nicely on iOS
+  reelVideo.setAttribute('playsinline', '');
+  reelVideo.setAttribute('webkit-playsinline', '');
+
+  // safety: if Monetag SDK loads late, it's okay - show_10078019 will exist on click if available.
+})();
+</script>
 </body>
 </html>
