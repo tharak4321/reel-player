@@ -18,20 +18,17 @@
   .wrap { box-sizing:border-box; max-width:430px; margin:18px auto; padding:14px; min-height:calc(100vh - 36px); display:flex; flex-direction:column; gap:12px; }
   .card { background: var(--bg-med); border: 1px solid rgba(255,255,255,0.05); border-radius:14px; padding:12px; box-shadow:0 8px 30px rgba(0,0,0,0.4); }
 
-  /* Header & Stats */
   .header { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; padding: 12px 8px; }
   .stat { text-align:center; }
   .stat .num { font-weight:700; font-size:1.5rem; color: var(--text-light); }
   .stat .label { font-size:0.8rem; color:var(--text-muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; }
 
-  /* XP Level Bar */
   .level-card { padding: 12px 14px; }
   .level-info { display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; margin-bottom:8px; }
   .level-info span:first-child { font-weight:700; }
   .xp-bar { width:100%; height:8px; background:var(--bg-dark); border-radius:4px; overflow:hidden; }
   .xp-bar-inner { width:0%; height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-light)); transition:width 0.5s ease; }
 
-  /* Player */
   .player-area { position:relative; background:#000; border-radius:12px; overflow:hidden; min-height:56vw; display:flex; align-items:center; justify-content:center; }
   video { width:100%; height:100%; object-fit:cover; display:block; }
   .placeholder { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px; text-align:center; color:var(--text-muted); }
@@ -39,7 +36,6 @@
   #unmutePrompt { position:absolute; inset:0; z-index:21; background:rgba(0,0,0,0.6); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; display:none; }
   #unmutePrompt span { font-size: 2.5rem; }
 
-  /* Controls */
   .controls { display:flex; flex-direction:column; gap:10px; }
   .btn { width:100%; padding:14px; border-radius:10px; border:0; font-weight:600; font-size:1.1rem; cursor:pointer; transition: transform 0.1s ease, box-shadow 0.2s ease; }
   .btn:active { transform:scale(0.98); }
@@ -50,7 +46,6 @@
   .btn-purple { background:linear-gradient(90deg, var(--purple), #be72d8); color:#fff; box-shadow: 0 4px 15px -5px var(--purple); }
   .btn-secondary { background:var(--card); color:var(--text-light); }
 
-  /* Modal System */
   .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:2000; }
   .modal.show { display:flex; animation:fadeIn 0.3s ease; }
   .modal-card { background:var(--bg-med); color:var(--text-light); padding:24px; border-radius:16px; max-width:92%; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
@@ -58,12 +53,24 @@
   .modal-card p { margin:0 0 20px; color:var(--text-muted); line-height:1.5; }
   a.link { color:var(--red); font-weight:700; text-decoration:none; }
   
-  /* Prize Wheel */
+  /* Prize Wheel -- IMAGES EMBEDDED HERE */
   #wheel-container { position:relative; width:250px; height:250px; margin: 0 auto 20px; }
-  #wheel { width:100%; height:100%; background-image:url('https://i.imgur.com/c6THaQ1.png'); background-size:cover; transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1); }
-  #wheel-pointer { position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:40px; height:50px; background-image:url('https://i.imgur.com/v1tFN0Q.png'); background-size:contain; background-repeat: no-repeat; }
+  #wheel { width:100%; height:100%; background-image:url('data:image/png;base64,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CMIQhEAIwhCEIQRhCEMQhCAIQhAE4RAEIQhBIAQhCMIQCGEIQhAEIQhCEAhBEIRACEIQhCAIQhAE4QiCIAhCEIQAgiAIwhAEIQhCEAQhCMIQCBEIgiAIwhCMIQjCEAhBEEIQhCAIQhAEQRCEIAhCEAghCEIQBEGEIQhCEAhBIAQhCEMQhCAIQhAEYQhDEIQgCIIQhCAI4AgCMIQhCEMQhEAIwhAIIQhCEIQgCIIQBEIQhCCEIQjCEAhBEIQgCEIQBGEIQhCEIIRCBEIQhCAIQhAEIQhCEIQRhCAIghAEQRCEIAhBEMIQhEAIwhAEQRCGUAhBEMIQhEAIwhAIIQhCEIQgCEMQhCAIghCEMAhCEIQgCEIQhCAIQRCMIQhCEIQgCEMQhEAIwhAEYQhDEIQgCIIQhCAIQhAE4RCGIAhBEIQgCEMghCAIwhCEMAhBEIRACEIQhCAIQhAEQRCMYAhBEMIQhEAIwhAIIQhCEIQgCEMQhCAIghAEwhAEIAjCEAghEIRACEIQhCAIghAIIQiCEAhBEMIQhEAIwhCEIQRBCEIQhCAIwhAIIQjCEAghCIIgCEIQBCEIQRCCIAhBEEIQhCAIQhCEQAiCIAhBEAhBEEIQhCAIQRBEAQhCEAQhEIIgCEMQhCAIQhAEQRCEIQhCEIQRhEAIwhAEYQjCEAhBEMIQhCAIwhAE4RBBEIRACEIQhEAIwhAEYQhCEAhBEAThCEMQhCAIwhAEQQhCEAhBEIRACEIQhCAIQhAEIRRCEIQgCEMghEAIwhAEYQiEIAhBEEIQhCAIwhAEQRCMYAhBEMIQhEAIwhCEMAhBEEIQhCAIwhCEIIRCBEIQhCAIwhAEwhAEIQhCEAhBEMIQhCAIQhAEQRCEIQhCEIRQBEIQhCAIwhCEMAhBEIQgCEIQBEEIQhCEIAhCEIRACEEQhEAIghAEIQRhCIRQhCAIwhAEQRCEIQRCEIRACEIQhCAIghAEIRQCEIRACEIQhCCEIQjCEAhBEIRACEIQhCAIwhAIIQiCIAhBEIQgCEMQhEAIwhAEYQjCEAhBIAQhCEMQhEAIgiAIQhAEIRRCEIRACEIQhCCEIQhCEIQgCEIQhCAIwhAEIRgCEIQhCIIghEAIwhCMIQhDEIQRhCAIghCEMAhCEIQgCIIgCEMQhEAIwhAEYQhDEIQgCIIQhCAIwhAE4RCGIAhBEIQgCEMghCAIwhAEYQhCEAhBIAQhCEMQhCAIwhAEQRCEIQRBEIRACEIQhCAIQhAEwhAEIQhCEAhBEIQgCEMQhCAIQRBEIQhCEAThCEYQhCAIwhAEIQRBEIQgCIIgCEMQhEAIwhAEYQjCEAhBIAQhCEMQhCAIwhAEQRCEIQRBEAThCEIQhCAIwhAEYQhDEIQgCIIghEIQhCAIwhAIIQjCEAhBEIQgCEIQBGEIQhCEIAhCEMghEIRACEIQhCAIwhAIIQiCQAiCIAjCEIQAgiAIwuwFAr8BA/dYQdmmP+YAAAAASUVORK5CYII='); 
+  background-size:cover; 
+  transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1); 
+  }
+  #wheel-pointer { 
+  position:absolute; 
+  top:-10px; 
+  left:50%; 
+  transform:translateX(-50%); 
+  width:40px; 
+  height:50px; 
+  background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAJcEhZcwAAFiUAABYlAUlSJPAAAAJ9SURBVHic7dxNq9RAAADg/2a9lYAWimJtYG1tY2NvY+9gYy9prdhbCIIghCD4T/5hZ5fceztZDAYDAwODwd+pVGowzL/23u+27/ut83/v+z7P8zzv+76fDof9V+v9Zn+zLMsar9crDMM4z/O2bXPp/cMwnud5LMsyDMO01q/32/3tcrncf/369Zd134eHhyzL8j33T/n9/o/2/T7Lsp/7d+u9dDq9/+vr6299fMdxzmaz/T4/z/N1Xdc8z/v+mM/neZ7nvu/zPK/3+4/p6+s7j7/dbrf9Wb16vb5Wq9W3+6v3u36/3+/7W+t9w3B99/c5z/ObzeafVqvV98PW+4Zhq9Vqv93v+1sYhvX5/PFnHMd1XR/79znn432/3+9vYRhGo9FwHMd+P/88z9fr9b6udRqNvm3/dq1Wu379+tX3w/s55+P9LMvyPM9xnNvt9o/d3d2/fezv8zzP8zyGYVrr9Vqv+b5frVbr33Eca63runmeX6vVjm3b/q5Wq13fvn37t7W+bdt+rVZ7nud9/s9xnFar1Y7j+L7/a63LsvzU+V+v1/+s9W3bL5dLhmFc1/Xz+Xw+n/f9fr/f73eaptVqdbVabTabzWbzbrdbr9ebzWazzWbzbrfbrVbr6XQ6nU6n0+l0Op1Op9PpVCoVCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCoVAoFAqFQqFQKBQKhUKhUCgUCoVCof5L6dDr9/s3w3C/2Wz+W+v9Zlrrf/sJwzBGo7HrummabTabzWbz/2+z2fS+PwwDA4PB7/Ev/W+lUikUCv0DXSg1jP0u0+AAAAAASUVORK5CYII='); 
+  background-size:contain; 
+  background-repeat: no-repeat; 
+  }
 
-  /* Missions & "How to Win" */
   .list-card { padding: 12px 16px; }
   .list-card h4 { margin:0 0 10px; text-align:center; }
   .list-card ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
@@ -75,7 +82,6 @@
   .mission .btn-claim { padding:6px 12px; font-size:0.9rem; }
   .mission .btn-claim:disabled { background:transparent; border:1px solid var(--text-muted); color:var(--text-muted); }
 
-  /* Toasts & Animations */
   .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg, #ffd54f, #ffb74d); color:#111; padding:10px 18px; border-radius:10px; font-weight:700; z-index:9999; animation:toast-in-out 3s ease; }
   @keyframes toast-in-out { 0%{top:-50px; opacity:0;} 20%{top:20px; opacity:1;} 80%{top:20px; opacity:1;} 100%{top:-50px; opacity:0;} }
   @keyframes fadeIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
@@ -130,7 +136,7 @@
     <div class="card controls">
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <button id="checkInBtn" class="btn btn-green">Daily Check-in</button>
-        <button id="missionsBtn" class="btn btn-secondary">Missions</button>
+        <button id="shareBtn" class="btn btn-secondary">Share for 3 Reels</button>
       </div>
       <button id="watchBtn" class="btn btn-primary">Watch Reel (<span id="reelsLeft">5</span> left)</button>
       <button id="bonusReelBtn" class="btn btn-purple" style="display:none;">Bonus Reel (Watch Ad)</button>
@@ -142,7 +148,7 @@
       <h4>🏆 How to Win the Prize 🏆</h4>
       <ul>
         <li>Watch daily reels to earn Points & XP.</li>
-        <li>Check-in daily to build a streak for bonus points.</li>
+        <li>Check-in & Share daily for bonus points and reels.</li>
         <li>Complete Missions for extra rewards.</li>
         <li>Collect 500 points to earn a Spin Token.</li>
         <li>Use Spin Tokens on the Prize Wheel to win the jackpot file!</li>
@@ -179,6 +185,7 @@
 // --- CONFIGURATION ---
 const CONFIG = {
   REELS_PER_DAY: 5,
+  SHARE_REWARD: 3, // Reels awarded for sharing
   XP_PER_REEL: 25,
   POINTS_PER_REEL: { min: 10, max: 30 },
   XP_BASE_LEVEL: 100,
@@ -197,31 +204,6 @@ const CONFIG = {
     'https://h2.myhostdata.space/videos/baby_moonn/14h5xm8.mp4',
     'https://desidamaka.site/wp-content/uploads/2025/10/video_10892@27-09-2023_20-44-59.mp4',
     'https://desidamaka.site/wp-content/uploads/2025/10/video_10891@27-09-2023_20-44-55.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_10890@27-09-2023_20-44-41.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_10889@27-09-2023_20-44-26.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_10886@27-09-2023_20-44-16.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_10879@27-09-2023_20-43-52.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_10883@27-09-2023_20-44-12.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_10876@27-09-2023_20-43-17.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_10875@27-09-2023_20-43-16.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11585@03-11-2023_01-13-35.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11586@03-11-2023_01-13-40.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11587@03-11-2023_01-13-54.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11589@03-11-2023_01-14-29.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11591@03-11-2023_01-14-47.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11594@03-11-2023_01-15-43.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11595@03-11-2023_01-15-57.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11594@03-11-2023_01-15-43-1.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11597@03-11-2023_01-16-20.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11599@03-11-2023_01-16-47.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11600@03-11-2023_01-16-59.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11602@03-11-2023_01-17-03.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11604@03-11-2023_01-17-05.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11612@06-11-2023_23-23-51.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11859@10-11-2023_19-45-15.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11854@10-11-2023_19-45-11.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11855@10-11-2023_19-45-12.mp4',
-    'https://desidamaka.site/wp-content/uploads/2025/10/video_11845@10-11-2023_19-45-00.mp4'
   ],
   PREMIUM_FILES: [
     'https://desidamaka.site/wp-content/uploads/2025/10/GymGInsta.zip',
@@ -260,6 +242,7 @@ const DOMElements = {
   watchBtn: document.getElementById('watchBtn'),
   bonusReelBtn: document.getElementById('bonusReelBtn'),
   checkInBtn: document.getElementById('checkInBtn'),
+  shareBtn: document.getElementById('shareBtn'),
   missionsBtn: document.getElementById('missionsBtn'),
   spinBtn: document.getElementById('spinBtn'),
   missionsModal: document.getElementById('missionsModal'),
@@ -274,7 +257,25 @@ const DOMElements = {
 };
 
 class GameState {
-  constructor() { this.state = { points: 0, spins: 0, streak: 0, level: 1, xp: 0, daily: { lastVisitDate: null, reelsViewedToday: 0, checkedIn: false, }, stats: { totalReelsWatched: 0, }, missions: { claimed: [], } }; this.STORAGE_KEY = 'rv_reel_state_v2'; }
+  constructor() {
+    this.state = {
+      points: 0,
+      spins: 0,
+      streak: 0,
+      level: 1,
+      xp: 0,
+      bonusReels: 0, // Reels earned from sharing
+      daily: {
+        lastVisitDate: null,
+        reelsViewedToday: 0,
+        checkedIn: false,
+        sharedToday: false, // Tracks if user has used the daily share reward
+      },
+      stats: { totalReelsWatched: 0 },
+      missions: { claimed: [] }
+    };
+    this.STORAGE_KEY = 'rv_reel_state_v3'; // Changed key to avoid conflicts with old versions
+  }
   load() { try { const s = JSON.parse(localStorage.getItem(this.STORAGE_KEY)); if (s) { this.state = this.deepMerge(this.state, s); } } catch (e) { console.error("Failed to load state", e); } }
   save() { try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state)); } catch (e) { console.error("Failed to save state", e); } }
   get(key) { return this.state[key]; }
@@ -282,6 +283,7 @@ class GameState {
   deepMerge(target, source) { for (const key in source) { if (source[key] instanceof Object && key in target) { Object.assign(source[key], this.deepMerge(target[key], source[key])) } } Object.assign(target || {}, source); return target; }
   addPoints(amount) { this.state.points += amount; const pointsNeeded = CONFIG.SPIN_COST; if (this.state.points >= pointsNeeded) { const spinsEarned = Math.floor(this.state.points / pointsNeeded); this.state.points %= pointsNeeded; this.addSpins(spinsEarned); UIManager.showToast(`+${spinsEarned} Spin Token!`); } }
   addSpins(amount) { this.state.spins += amount; }
+  addBonusReels(amount) { this.state.bonusReels += amount; }
   addXp(amount) { this.state.xp += amount; let xpForNextLevel = this.getXpForLevel(this.state.level); while (this.state.xp >= xpForNextLevel) { this.state.xp -= xpForNextLevel; this.state.level++; const levelUpBonus = 100 * this.state.level; this.addPoints(levelUpBonus); UIManager.showToast(`LEVEL UP! +${levelUpBonus} Bonus Points!`); xpForNextLevel = this.getXpForLevel(this.state.level); } }
   getXpForLevel(level) { return Math.floor(CONFIG.XP_BASE_LEVEL * Math.pow(CONFIG.XP_LEVEL_MULTIPLIER, level - 1)); }
 }
@@ -290,7 +292,24 @@ const UIManager = {
   updateAll(state) { this.updateHeader(state); this.updateLevel(state); this.updateControls(state); },
   updateHeader(state) { DOMElements.points.textContent = state.get('points'); DOMElements.streak.textContent = `${state.get('streak')} 🔥`; DOMElements.spins.textContent = state.get('spins'); },
   updateLevel(state) { const level = state.get('level'); const xp = state.get('xp'); const xpForNext = state.getXpForLevel(level); DOMElements.levelText.textContent = `Level ${level}`; DOMElements.xpText.textContent = `${xp}/${xpForNext} XP`; DOMElements.xpBarInner.style.width = `${(xp / xpForNext) * 100}%`; },
-  updateControls(state) { const daily = state.get('daily'); const reelsLeft = CONFIG.REELS_PER_DAY - daily.reelsViewedToday; DOMElements.reelsLeft.textContent = reelsLeft; DOMElements.watchBtn.disabled = reelsLeft <= 0; DOMElements.watchBtn.style.display = reelsLeft > 0 ? 'block' : 'none'; DOMElements.bonusReelBtn.style.display = reelsLeft <= 0 ? 'block' : 'none'; DOMElements.checkInBtn.disabled = daily.checkedIn; DOMElements.checkInBtn.textContent = daily.checkedIn ? 'Checked In!' : 'Daily Check-in'; DOMElements.spinBtn.style.display = state.get('spins') > 0 ? 'block' : 'none'; },
+  updateControls(state) {
+    const daily = state.get('daily');
+    const bonusReels = state.get('bonusReels');
+    const totalReelsAvailable = CONFIG.REELS_PER_DAY + bonusReels;
+    const reelsLeft = totalReelsAvailable - daily.reelsViewedToday;
+
+    DOMElements.reelsLeft.textContent = reelsLeft;
+    DOMElements.watchBtn.style.display = reelsLeft > 0 ? 'block' : 'none';
+    DOMElements.bonusReelBtn.style.display = reelsLeft <= 0 ? 'block' : 'none';
+
+    DOMElements.checkInBtn.disabled = daily.checkedIn;
+    DOMElements.checkInBtn.textContent = daily.checkedIn ? 'Checked In!' : 'Daily Check-in';
+    
+    DOMElements.shareBtn.disabled = daily.sharedToday;
+    DOMElements.shareBtn.textContent = daily.sharedToday ? 'Shared Today!' : `Share for ${CONFIG.SHARE_REWARD} Reels`;
+
+    DOMElements.spinBtn.style.display = state.get('spins') > 0 ? 'block' : 'none';
+  },
   showModal(modal) { modal.classList.add('show'); },
   hideModal(modal) { modal.classList.remove('show'); },
   showToast(text) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = text; document.body.appendChild(d); setTimeout(() => d.remove(), 3000); },
@@ -299,14 +318,26 @@ const UIManager = {
 
 class Game {
   constructor() { this.state = new GameState(); this.isSpinning = false; }
-  init() { this.state.load(); this.dailyReset(); UIManager.updateAll(this.state); this.bindEvents(); console.log("Reel Rewards 2.0 Initialized"); }
-  dailyReset() { const today = new Date().toDateString(); const lastVisit = this.state.get('daily').lastVisitDate; if (lastVisit !== today) { const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); const newStreak = (lastVisit === yesterday.toDateString()) ? this.state.get('streak') + 1 : 1; this.state.set('streak', newStreak); this.state.set('daily', { lastVisitDate: today, reelsViewedToday: 0, checkedIn: false, }); this.state.save(); } }
+  init() { this.state.load(); this.dailyReset(); UIManager.updateAll(this.state); this.bindEvents(); }
+  dailyReset() {
+    const today = new Date().toDateString();
+    const lastVisit = this.state.get('daily').lastVisitDate;
+    if (lastVisit !== today) {
+      const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+      const newStreak = (lastVisit === yesterday.toDateString()) ? this.state.get('streak') + 1 : 1;
+      this.state.set('streak', newStreak);
+      this.state.set('bonusReels', 0); // Reset bonus reels each day
+      this.state.set('daily', { lastVisitDate: today, reelsViewedToday: 0, checkedIn: false, sharedToday: false });
+      this.state.save();
+    }
+  }
   bindEvents() {
     DOMElements.watchBtn.addEventListener('click', () => this.playReelSequence(false));
     DOMElements.bonusReelBtn.addEventListener('click', () => this.playReelSequence(true));
     DOMElements.checkInBtn.addEventListener('click', () => this.performCheckIn());
-    DOMElements.missionsBtn.addEventListener('click', () => this.showMissions());
-    DOMElements.spinBtn.addEventListener('click', () => this.showWheel());
+    DOMElements.shareBtn.addEventListener('click', () => this.shareForReels());
+    DOMElements.missionsBtn.addEventListener('click', () => { UIManager.renderMissions(this.state); UIManager.showModal(DOMElements.missionsModal); });
+    DOMElements.spinBtn.addEventListener('click', () => { if (this.state.get('spins') > 0) { DOMElements.spinsAvailable.textContent = this.state.get('spins'); UIManager.showModal(DOMElements.wheelModal); }});
     DOMElements.spinTheWheelBtn.addEventListener('click', () => this.spinWheel());
     DOMElements.unmutePrompt.addEventListener('click', () => { DOMElements.reelVideo.muted = false; DOMElements.unmutePrompt.style.display = 'none'; });
     document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => UIManager.hideModal(btn.closest('.modal'))));
@@ -314,13 +345,30 @@ class Game {
     DOMElements.playPauseBtn.onclick = () => { if (!DOMElements.reelVideo.paused) { DOMElements.reelVideo.pause(); DOMElements.playPauseBtn.textContent = '▶'; } else { DOMElements.reelVideo.play().catch(()=>{}); DOMElements.playPauseBtn.textContent = '⏸'; } };
   }
   performCheckIn() { if (this.state.get('daily').checkedIn) return; const streak = this.state.get('streak'); const reward = CONFIG.DAILY_REWARD_BASE + (streak * CONFIG.DAILY_STREAK_BONUS); this.state.addPoints(reward); this.state.get('daily').checkedIn = true; UIManager.showToast(`+${reward} Points! (Streak x${streak})`); this.state.save(); UIManager.updateAll(this.state); }
-  showMissions() { UIManager.renderMissions(this.state); UIManager.showModal(DOMElements.missionsModal); }
-  claimMission(id) { if (!MISSIONS[id] || this.state.get('missions').claimed.includes(id)) return; const mission = MISSIONS[id]; const { type, value } = mission.reward; if (type === 'points') this.state.addPoints(value); if (type === 'spins') this.state.addSpins(value); this.state.get('missions').claimed.push(id); UIManager.showToast(`Mission Complete! Reward: ${value} ${type}!`); this.state.save(); UIManager.renderMissions(this.state); UIManager.updateHeader(this.state); UIManager.updateControls(this.state); }
-  showWheel() { if (this.state.get('spins') <= 0) return; DOMElements.spinsAvailable.textContent = this.state.get('spins'); UIManager.showModal(DOMElements.wheelModal); }
+  async shareForReels() {
+    if (this.state.get('daily').sharedToday) return;
+    const shareData = { title: 'Reel Rewards', text: 'Watch reels and win prizes!', url: window.location.href };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        navigator.clipboard.writeText(shareData.url);
+        alert('Link copied to clipboard!');
+      }
+      this.state.addBonusReels(CONFIG.SHARE_REWARD);
+      this.state.get('daily').sharedToday = true;
+      UIManager.showToast(`+${CONFIG.SHARE_REWARD} Bonus Reels!`);
+      this.state.save();
+      UIManager.updateAll(this.state);
+    } catch (err) {
+      console.log("Share failed:", err);
+    }
+  }
+  claimMission(id) { if (!MISSIONS[id] || this.state.get('missions').claimed.includes(id)) return; const mission = MISSIONS[id]; const { type, value } = mission.reward; if (type === 'points') this.state.addPoints(value); if (type === 'spins') this.state.addSpins(value); this.state.get('missions').claimed.push(id); UIManager.showToast(`Mission Complete! Reward: ${value} ${type}!`); this.state.save(); UIManager.updateAll(this.state); }
   spinWheel() { if (this.isSpinning || this.state.get('spins') <= 0) return; this.isSpinning = true; this.state.set('spins', this.state.get('spins') - 1); this.state.save(); UIManager.updateHeader(this.state); DOMElements.spinsAvailable.textContent = this.state.get('spins'); DOMElements.spinTheWheelBtn.disabled = true; const prizeCount = CONFIG.WHEEL_PRIZES.length; const segmentAngle = 360 / prizeCount; const randomStop = Math.floor(Math.random() * prizeCount); const rotation = (360 * 5) + (randomStop * segmentAngle) - (segmentAngle / 2); DOMElements.wheel.style.transform = `rotate(${rotation}deg)`; setTimeout(() => { this.isSpinning = false; DOMElements.spinTheWheelBtn.disabled = false; DOMElements.wheel.style.transition = 'none'; DOMElements.wheel.style.transform = `rotate(${rotation % 360}deg)`; setTimeout(() => { DOMElements.wheel.style.transition = 'transform 5s cubic-bezier(0.25, 1, 0.5, 1)'; }, 50); UIManager.hideModal(DOMElements.wheelModal); this.awardPrize(CONFIG.WHEEL_PRIZES[randomStop]); }, 5500); }
   awardPrize(prize) { if (prize.type === 'points') { this.state.addPoints(prize.value); DOMElements.prizeTitle.textContent = '🎉 You Won!'; DOMElements.prizeText.innerHTML = `You received <strong style="color:var(--gold);">${prize.value}</strong> points!`; } else if (prize.type === 'premium') { const randomFile = CONFIG.PREMIUM_FILES[Math.floor(Math.random() * CONFIG.PREMIUM_FILES.length)]; DOMElements.prizeTitle.textContent = '🎁 JACKPOT!'; DOMElements.prizeText.innerHTML = `You've unlocked a premium file! <a href="${randomFile}" class="link" target="_blank" rel="noopener">Download Here</a>`; } this.state.save(); UIManager.updateHeader(this.state); UIManager.showModal(DOMElements.prizeModal); }
-  playReelSequence(isBonus = false) { if (typeof show_10078019 === 'function') { try { show_10078019().finally(() => this.playReel(isBonus)); } catch (e) { this.playReel(isBonus); } } else { this.playReel(isBonus); } }
-  playReel(isBonus) { DOMElements.placeholder.style.display = 'none'; DOMElements.reelVideo.src = CONFIG.REEL_VIDEOS[Math.floor(Math.random() * CONFIG.REEL_VIDEOS.length)]; DOMElements.reelVideo.style.display = 'block'; DOMElements.reelVideo.muted = false; DOMElements.unmutePrompt.style.display = 'none'; DOMElements.reelVideo.play().catch(err => { console.warn("Autoplay with sound failed, falling back to muted", err); DOMElements.reelVideo.muted = true; DOMElements.unmutePrompt.style.display = 'flex'; DOMElements.reelVideo.play(); }); DOMElements.playPauseBtn.style.display = 'flex'; DOMElements.playPauseBtn.textContent = '⏸'; DOMElements.reelVideo.onended = () => { DOMElements.reelVideo.style.display = 'none'; DOMElements.reelVideo.src = ''; DOMElements.placeholder.style.display = 'flex'; DOMElements.playPauseBtn.style.display = 'none'; DOMElements.unmutePrompt.style.display = 'none'; const pointsWon = CONFIG.POINTS_PER_REEL.min + Math.floor(Math.random() * (CONFIG.POINTS_PER_REEL.max - CONFIG.POINTS_PER_REEL.min + 1)); this.state.addPoints(pointsWon); this.state.addXp(CONFIG.XP_PER_REEL); if (!isBonus) { this.state.get('daily').reelsViewedToday++; } this.state.get('stats').totalReelsWatched++; UIManager.showToast(`+${pointsWon} Points & +${CONFIG.XP_PER_REEL} XP`); this.state.save(); UIManager.updateAll(this.state); }; }
+  playReelSequence(isBonusAd = false) { if (typeof show_10078019 === 'function') { try { show_10078019().finally(() => this.playReel(isBonusAd)); } catch (e) { this.playReel(isBonusAd); } } else { this.playReel(isBonusAd); } }
+  playReel(isBonusAd) { DOMElements.placeholder.style.display = 'none'; DOMElements.reelVideo.src = CONFIG.REEL_VIDEOS[Math.floor(Math.random() * CONFIG.REEL_VIDEOS.length)]; DOMElements.reelVideo.style.display = 'block'; DOMElements.reelVideo.muted = false; DOMElements.unmutePrompt.style.display = 'none'; DOMElements.reelVideo.play().catch(err => { console.warn("Autoplay with sound failed, falling back to muted", err); DOMElements.reelVideo.muted = true; DOMElements.unmutePrompt.style.display = 'flex'; DOMElements.reelVideo.play(); }); DOMElements.playPauseBtn.style.display = 'flex'; DOMElements.playPauseBtn.textContent = '⏸'; DOMElements.reelVideo.onended = () => { DOMElements.reelVideo.style.display = 'none'; DOMElements.reelVideo.src = ''; DOMElements.placeholder.style.display = 'flex'; DOMElements.playPauseBtn.style.display = 'none'; DOMElements.unmutePrompt.style.display = 'none'; const pointsWon = CONFIG.POINTS_PER_REEL.min + Math.floor(Math.random() * (CONFIG.POINTS_PER_REEL.max - CONFIG.POINTS_PER_REEL.min + 1)); this.state.addPoints(pointsWon); this.state.addXp(CONFIG.XP_PER_REEL); this.state.get('daily').reelsViewedToday++; this.state.get('stats').totalReelsWatched++; UIManager.showToast(`+${pointsWon} Points & +${CONFIG.XP_PER_REEL} XP`); this.state.save(); UIManager.updateAll(this.state); }; }
 }
 
 document.addEventListener('DOMContentLoaded', () => { const game = new Game(); game.init(); });
