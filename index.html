@@ -3,352 +3,627 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Reel Rewards</title>
+<title>Reel Rewards 2.0</title>
 
-<!-- Monetag SDK (keeps here as requested) -->
+<!-- Monetag SDK -->
 <script src="//libtl.com/sdk.js" data-zone="10078019" data-sdk="show_10078019"></script>
 
 <style>
-  :root{
-    --bg:#0f1720; --card:#161922; --accent:#2196F3; --accent2:#ff4757; --muted:#9aa4b2;
+  :root {
+    --bg-dark: #0f1720; --bg-med: #1e293b; --card: #2c3a4f;
+    --accent: #4a90e2; --accent-light: #6aa9f7; --green: #50c878; --red: #ff4757; --gold: #ffd700;
+    --text-light: #f1f5f9; --text-muted: #94a3b8;
   }
-  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#fff;-webkit-font-smoothing:antialiased;}
-  .wrap{box-sizing:border-box;max-width:430px;margin:18px auto;padding:14px;min-height:calc(100vh - 36px);display:flex;flex-direction:column;gap:12px;}
-  .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:14px;padding:12px;box-shadow:0 6px 20px rgba(0,0,0,0.5);}
-  .header{display:flex;justify-content:space-between;gap:8px;align-items:center;}
-  .stat{display:flex;flex-direction:column;align-items:center;}
-  .stat .num{font-weight:700;font-size:1.4rem;}
-  .stat .label{font-size:0.8rem;color:var(--muted);margin-top:2px;}
-  .player-area{position:relative;background:#000;border-radius:12px;overflow:hidden;min-height:56vw; /* mobile-friendly aspect */ display:flex;align-items:center;justify-content:center;}
-  video{width:100%;height:100%;object-fit:cover;display:block;}
-  .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;color:var(--muted);font-size:1rem}
-  .controls{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
-  .btn{width:100%;padding:12px;border-radius:10px;border:0;font-weight:600;font-size:1rem;cursor:pointer}
-  .btn-primary{background:linear-gradient(90deg,var(--accent),#21cbf3);color:#fff}
-  .btn-green{background:linear-gradient(90deg,#4CAF50,#2FA84F);color:#fff}
-  .small{text-align:center;color:var(--muted);font-size:0.9rem}
-  /* Play/Pause center button */
-  #playPauseBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20;display:none;width:68px;height:68px;border-radius:50%;border:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:0 6px 20px rgba(0,0,0,0.6);cursor:pointer}
-  /* Confetti */
-  .confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:9999}
-  .confetti{position:absolute;width:8px;height:12px;opacity:0.95;border-radius:2px;animation:fall linear forwards}
-  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}} 
-  /* modal */
-  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:2000}
-  .modal.show{display:flex}
-  .modal-card{background:#fff;color:#111;padding:18px;border-radius:12px;max-width:92%;text-align:center}
-  a.link{color:var(--accent2);font-weight:700}
-  /* responsive tweaks */
+  html,body { height:100%; margin:0; background:var(--bg-dark); font-family: 'Inter', system-ui, -apple-system, sans-serif; color:var(--text-light); -webkit-font-smoothing:antialiased; }
+  .wrap { box-sizing:border-box; max-width:430px; margin:18px auto; padding:14px; min-height:calc(100vh - 36px); display:flex; flex-direction:column; gap:12px; }
+  .card { background: var(--bg-med); border: 1px solid rgba(255,255,255,0.05); border-radius:14px; padding:12px; box-shadow:0 8px 30px rgba(0,0,0,0.4); }
+
+  /* Header & Stats */
+  .header { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; padding: 12px 8px; }
+  .stat { text-align:center; }
+  .stat .num { font-weight:700; font-size:1.5rem; color: var(--text-light); }
+  .stat .label { font-size:0.8rem; color:var(--text-muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* XP Level Bar */
+  .level-card { padding: 12px 14px; }
+  .level-info { display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; margin-bottom:8px; }
+  .level-info span:first-child { font-weight:700; }
+  .xp-bar { width:100%; height:8px; background:var(--bg-dark); border-radius:4px; overflow:hidden; }
+  .xp-bar-inner { width:0%; height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-light)); transition:width 0.5s ease; }
+
+  /* Player */
+  .player-area { position:relative; background:#000; border-radius:12px; overflow:hidden; min-height:56vw; display:flex; align-items:center; justify-content:center; }
+  video { width:100%; height:100%; object-fit:cover; display:block; }
+  .placeholder { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px; text-align:center; color:var(--text-muted); }
+  #playPauseBtn { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:20; width:68px; height:68px; border-radius:50%; border:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.6rem; cursor:pointer; backdrop-filter:blur(4px); display:none; }
+
+  /* Controls */
+  .controls { display:flex; flex-direction:column; gap:10px; }
+  .btn { width:100%; padding:14px; border-radius:10px; border:0; font-weight:600; font-size:1.1rem; cursor:pointer; transition: transform 0.1s ease, box-shadow 0.2s ease; }
+  .btn:active { transform:scale(0.98); }
+  .btn:disabled { background:var(--card) !important; color:var(--text-muted); cursor:not-allowed; }
+  .btn-primary { background:linear-gradient(90deg, var(--accent), var(--accent-light)); color:#fff; box-shadow: 0 4px 15px -5px var(--accent); }
+  .btn-green { background:linear-gradient(90deg, var(--green), #6ade95); color:#fff; box-shadow: 0 4px 15px -5px var(--green); }
+  .btn-gold { background:linear-gradient(90deg, var(--gold), #ffe566); color:#111; box-shadow: 0 4px 15px -5px var(--gold); }
+  .btn-secondary { background:var(--card); color:var(--text-light); }
+
+  /* Modal System */
+  .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.7); backdrop-filter:blur(5px); z-index:2000; }
+  .modal.show { display:flex; animation:fadeIn 0.3s ease; }
+  .modal-card { background:var(--bg-med); color:var(--text-light); padding:24px; border-radius:16px; max-width:92%; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+  .modal-card h3 { margin:0 0 10px; font-size:1.8rem; }
+  .modal-card p { margin:0 0 20px; color:var(--text-muted); line-height:1.5; }
+  a.link { color:var(--red); font-weight:700; text-decoration:none; }
+  
+  /* Prize Wheel */
+  #wheel-container { position:relative; width:250px; height:250px; margin: 0 auto 20px; }
+  #wheel { width:100%; height:100%; background-image:url('https://i.imgur.com/c6THaQ1.png'); background-size:cover; transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1); }
+  #wheel-pointer { position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:40px; height:50px; background-image:url('https://i.imgur.com/v1tFN0Q.png'); background-size:contain; background-repeat: no-repeat; }
+
+  /* Missions */
+  #missionsList { text-align:left; max-height: 250px; overflow-y: auto; padding-right:10px; }
+  .mission { background:var(--bg-dark); padding:10px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+  .mission-info p { margin:0; color:var(--text-light); font-size:0.9rem; }
+  .mission-info .progress { font-size:0.8rem; color:var(--text-muted); }
+  .mission .btn-claim { padding:6px 12px; font-size:0.9rem; }
+  .mission .btn-claim:disabled { background:transparent; border:1px solid var(--text-muted); color:var(--text-muted); }
+
+  /* Toasts & Animations */
+  .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg, #ffd54f, #ffb74d); color:#111; padding:10px 18px; border-radius:10px; font-weight:700; z-index:9999; animation:toast-in-out 3s ease; }
+  @keyframes toast-in-out { 0%{top:-50px; opacity:0;} 20%{top:20px; opacity:1;} 80%{top:20px; opacity:1;} 100%{top:-50px; opacity:0;} }
+  @keyframes fadeIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
   @media(min-width:760px){ .wrap{margin:28px auto;min-height:640px} .player-area{min-height:480px} }
 </style>
 </head>
 <body>
   <div class="wrap">
+    <!-- Header -->
     <div class="card header">
       <div class="stat">
         <div class="num" id="points">0</div>
         <div class="label">Points</div>
       </div>
       <div class="stat">
-        <div class="num" id="streak">0</div>
+        <div class="num" id="streak">0 🔥</div>
         <div class="label">Streak</div>
       </div>
       <div class="stat">
-        <div class="num" id="left">3</div>
-        <div class="label">Reels left</div>
+        <div class="num" id="spins">0</div>
+        <div class="label">Spins</div>
       </div>
     </div>
 
+    <!-- Level Progress -->
+    <div class="card level-card">
+      <div class="level-info">
+        <span id="levelText">Level 1</span>
+        <span id="xpText">0/100 XP</span>
+      </div>
+      <div class="xp-bar"><div id="xpBarInner" class="xp-bar-inner"></div></div>
+    </div>
+
+    <!-- Video Player -->
     <div class="card player-area" id="playerCard" aria-label="Reel player">
       <video id="reelVideo" playsinline webkit-playsinline preload="metadata"></video>
-
       <div class="placeholder" id="placeholder">
         <div>
-          <strong>Watch short reels to earn points</strong>
+          <strong style="font-size:1.2rem;">Become a Reel Master!</strong>
           <div style="height:8px"></div>
-          <div class="small">Tap "Watch Reel" to start (ads shown before play)</div>
+          <div class="small">Watch reels to gain XP, level up, and earn spins on the prize wheel.</div>
         </div>
       </div>
-
       <button id="playPauseBtn" aria-label="Play or Pause">▶</button>
     </div>
 
+    <!-- Controls -->
     <div class="card controls">
-      <div class="small">Daily free reels: <strong id="freeCountText">3</strong></div>
-      <button id="watchBtn" class="btn btn-primary">Watch Reel</button>
-      <button id="bonusBtn" class="btn btn-green" style="display:none">Bonus Reel (Watch Ad)</button>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <button id="checkInBtn" class="btn btn-green">Daily Check-in</button>
+        <button id="missionsBtn" class="btn btn-secondary">Missions</button>
+      </div>
+      <button id="watchBtn" class="btn btn-primary">Watch Reel (<span id="reelsLeft">5</span> left)</button>
+      <button id="spinBtn" class="btn btn-gold" style="display:none;">Spin the Wheel!</button>
     </div>
   </div>
 
-  <!-- Confetti container -->
-  <div class="confetti-wrap" id="confettiWrap"></div>
+  <!-- Modals -->
+  <div id="missionsModal" class="modal" role="dialog"><div class="modal-card">
+    <h3>🚀 Missions</h3>
+    <div id="missionsList"></div>
+    <div style="height:10px"></div>
+    <button class="btn btn-secondary" data-close>Close</button>
+  </div></div>
 
-  <!-- Unlock modal -->
-  <div id="unlockModal" class="modal" role="dialog" aria-modal="true">
-    <div class="modal-card">
-      <h3>🎉 UNLOCKED!</h3>
-      <p>You reached 250 points — here's your premium file:</p>
-      <p><a id="premiumLink" class="link" href="#" target="_blank" rel="noopener">Get file</a></p>
-      <div style="height:10px"></div>
-      <button id="closeModal" class="btn">Close</button>
+  <div id="wheelModal" class="modal" role="dialog"><div class="modal-card">
+    <h3>🎡 Prize Wheel</h3>
+    <p>You have <strong id="spinsAvailable">1</strong> spin! Good luck!</p>
+    <div id="wheel-container">
+        <div id="wheel"></div>
+        <div id="wheel-pointer"></div>
     </div>
-  </div>
+    <button id="spinTheWheelBtn" class="btn btn-primary">SPIN!</button>
+  </div></div>
+  
+  <div id="prizeModal" class="modal" role="dialog"><div class="modal-card">
+    <h3 id="prizeTitle">🎉 You Won!</h3>
+    <p id="prizeText">You got 100 points!</p>
+    <button class="btn btn-secondary" data-close>Awesome!</button>
+  </div></div>
 
 <script>
+'use strict';
 /*
-  Reel Rewards - Single-file app
-  - Uses Monetag function show_10078019() (if available) before every reel play
-  - Picks a random video from REEL_VIDEOS
-  - Points, streak, daily limit persist in localStorage
-  - Play/Pause center button, mobile friendly
-  - Designed to be uploaded to GitHub and deployed on Vercel/Netlify
+  Reel Rewards 2.0 - Advanced Gamification
+  - Level system with XP
+  - Daily check-in with increasing streak rewards
+  - Missions system for guided engagement
+  - Prize wheel for variable, exciting rewards
+  - Cleaner, more modular code structure
 */
 
-/* ----- CONFIG ----- */
-const REELS_PER_DAY = 3;
-const POINTS_THRESHOLD = 250;
-const REEL_VIDEOS = [
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10892@27-09-2023_20-44-59.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10891@27-09-2023_20-44-55.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10890@27-09-2023_20-44-41.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10889@27-09-2023_20-44-26.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10886@27-09-2023_20-44-16.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10879@27-09-2023_20-43-52.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10883@27-09-2023_20-44-12.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10876@27-09-2023_20-43-17.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_10875@27-09-2023_20-43-16.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11585@03-11-2023_01-13-35.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11586@03-11-2023_01-13-40.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11587@03-11-2023_01-13-54.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11589@03-11-2023_01-14-29.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11591@03-11-2023_01-14-47.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11594@03-11-2023_01-15-43.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11595@03-11-2023_01-15-57.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11594@03-11-2023_01-15-43-1.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11597@03-11-2023_01-16-20.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11599@03-11-2023_01-16-47.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11600@03-11-2023_01-16-59.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11602@03-11-2023_01-17-03.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11604@03-11-2023_01-17-05.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11612@06-11-2023_23-23-51.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11859@10-11-2023_19-45-15.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11854@10-11-2023_19-45-11.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11855@10-11-2023_19-45-12.mp4',
-  'https://desidamaka.site/wp-content/uploads/2025/10/video_11845@10-11-2023_19-45-00.mp4'
-];
-const PREMIUM_FILES = [
-  'https://example.com/premium/file1.zip',
-  'https://example.com/premium/file2.pdf',
-  'https://example.com/premium/file3.mp4'
-];
+// --- CONFIGURATION ---
+const CONFIG = {
+  REELS_PER_DAY: 5,
+  XP_PER_REEL: 25,
+  POINTS_PER_REEL: { min: 10, max: 30 },
+  XP_BASE_LEVEL: 100,
+  XP_LEVEL_MULTIPLIER: 1.2,
+  SPIN_COST: 500, // Points needed to earn 1 spin
+  DAILY_REWARD_BASE: 50,
+  DAILY_STREAK_BONUS: 25,
+  REEL_VIDEOS: [
+    // Your new videos added here
+    'https://h2.myhostdata.space/videos/Bbyvannessa/13rxa5b.mp4',
+    'https://h2.myhostdata.space/videos/Babbybrunettee/13795w5.mp4',
+    'https://h2.myhostdata.space/videos/littlebootybabe/y0wfeu.mp4',
+    'https://h2.myhostdata.space/videos/Berryxbaby/149rdu7.mp4',
+    'https://h2.myhostdata.space/videos/bustyredonyx/107rgji.mp4',
+    'https://h2.myhostdata.space/videos/RubyLeigh456/14levnn.mp4',
+    'https://h2.myhostdata.space/videos/diana_web/14fo7an.mp4',
+    'https://h2.myhostdata.space/videos/baby_moonn/14h5xm8.mp4',
+    // Original videos
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10892@27-09-2023_20-44-59.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10891@27-09-2023_20-44-55.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10890@27-09-2023_20-44-41.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10889@27-09-2023_20-44-26.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10886@27-09-2023_20-44-16.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10879@27-09-2023_20-43-52.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10883@27-09-2023_20-44-12.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10876@27-09-2023_20-43-17.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_10875@27-09-2023_20-43-16.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11585@03-11-2023_01-13-35.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11586@03-11-2023_01-13-40.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11587@03-11-2023_01-13-54.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11589@03-11-2023_01-14-29.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11591@03-11-2023_01-14-47.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11594@03-11-2023_01-15-43.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11595@03-11-2023_01-15-57.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11594@03-11-2023_01-15-43-1.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11597@03-11-2023_01-16-20.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11599@03-11-2023_01-16-47.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11600@03-11-2023_01-16-59.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11602@03-11-2023_01-17-03.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11604@03-11-2023_01-17-05.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11612@06-11-2023_23-23-51.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11859@10-11-2023_19-45-15.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11854@10-11-2023_19-45-11.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11855@10-11-2023_19-45-12.mp4',
+    'https://desidamaka.site/wp-content/uploads/2025/10/video_11845@10-11-2023_19-45-00.mp4'
+  ],
+  // Your new prize files
+  PREMIUM_FILES: [
+    'https://desidamaka.site/wp-content/uploads/2025/10/GymGInsta.zip',
+    'https://desidamaka.site/wp-content/uploads/2025/10/Album-300.zip'
+  ],
+  WHEEL_PRIZES: [
+    { type: 'points', value: 50, label: '50 PTS' },
+    { type: 'points', value: 150, label: '150 PTS' },
+    { type: 'points', value: 75, label: '75 PTS' },
+    { type: 'premium', value: 1, label: '🎁 FILE' }, // This is the jackpot prize
+    { type: 'points', value: 100, label: '100 PTS' },
+    { type: 'points', value: 250, label: '250 PTS' },
+    { type: 'points', value: 25, label: '25 PTS' },
+    { type: 'points', value: 200, label: '200 PTS' },
+  ]
+};
 
-/* ----- DOM ----- */
-const pointsEl = document.getElementById('points');
-const streakEl = document.getElementById('streak');
-const leftEl = document.getElementById('left');
-const freeCountText = document.getElementById('freeCountText');
-
-const watchBtn = document.getElementById('watchBtn');
-const bonusBtn = document.getElementById('bonusBtn');
-const reelVideo = document.getElementById('reelVideo');
-const placeholder = document.getElementById('placeholder');
-const playPauseBtn = document.getElementById('playPauseBtn');
-
-const unlockModal = document.getElementById('unlockModal');
-const premiumLink = document.getElementById('premiumLink');
-const closeModal = document.getElementById('closeModal');
-
-const confettiWrap = document.getElementById('confettiWrap');
-
-/* ----- STATE ----- */
-let state = { points:0, streak:0, reelsViewedToday:0, lastVisitDate:null };
-const STORAGE_KEY = 'rv_reel_state_v1';
-
-/* ----- helpers ----- */
-function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
-function loadState(){ try{ const s = JSON.parse(localStorage.getItem(STORAGE_KEY)); if(s) state = s; }catch(e){} }
-function todayString(){ return new Date().toDateString(); }
-function randFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function showConfetti(){ for(let i=0;i<50;i++){ const c=document.createElement('div'); c.className='confetti'; c.style.left=(Math.random()*100)+'vw'; c.style.background=`hsl(${Math.random()*360},85%,55%)`; c.style.top=((-10)+Math.random()*10)+'vh'; c.style.animationDuration=(2.5+Math.random()*2.5)+'s'; confettiWrap.appendChild(c); setTimeout(()=>c.remove(),5000); } }
-
-/* ----- daily reset & UI ----- */
-function dailyResetIfNeeded(){
-  const today = todayString();
-  if(state.lastVisitDate !== today){
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
-    state.streak = (state.lastVisitDate === yesterday.toDateString()) ? (state.streak || 0) + 1 : 1;
-    state.reelsViewedToday = 0;
-    state.lastVisitDate = today;
-    saveState();
+const MISSIONS = {
+  watch10: {
+    title: "Reel Rookie",
+    description: "Watch 10 reels in total.",
+    goal: 10,
+    reward: { type: 'points', value: 100 },
+    getProgress: (state) => state.stats.totalReelsWatched,
+  },
+  reachLevel5: {
+    title: "Leveling Up",
+    description: "Reach Level 5.",
+    goal: 5,
+    reward: { type: 'spins', value: 1 },
+    getProgress: (state) => state.level,
+  },
+  streak3: {
+    title: "Consistent Viewer",
+    description: "Achieve a 3-day login streak.",
+    goal: 3,
+    reward: { type: 'points', value: 250 },
+    getProgress: (state) => state.streak,
   }
-}
-function updateUI(){
-  pointsEl.textContent = state.points;
-  streakEl.textContent = state.streak;
-  leftEl.textContent = Math.max(0, REELS_PER_DAY - state.reelsViewedToday);
-  freeCountText.textContent = Math.max(0, REELS_PER_DAY - state.reelsViewedToday);
-  watchBtn.disabled = state.reelsViewedToday >= REELS_PER_DAY;
-  bonusBtn.style.display = (state.reelsViewedToday >= REELS_PER_DAY) ? 'block' : 'none';
-}
+};
 
-/* ----- Ad wrapper: call Monetag then play -----
-   Monetag exposes show_10078019() per your earlier messages.
-   If not available, fallback to playing immediately.
-*/
-function showAdThenPlay(isBonus=false){
-  // Ensure this happens only after a user gesture (button click) — watchBtn already called from click event.
-  if (typeof show_10078019 === 'function') {
+// --- DOM ELEMENTS ---
+const DOMElements = {
+  points: document.getElementById('points'),
+  streak: document.getElementById('streak'),
+  spins: document.getElementById('spins'),
+  levelText: document.getElementById('levelText'),
+  xpText: document.getElementById('xpText'),
+  xpBarInner: document.getElementById('xpBarInner'),
+  reelVideo: document.getElementById('reelVideo'),
+  placeholder: document.getElementById('placeholder'),
+  playPauseBtn: document.getElementById('playPauseBtn'),
+  reelsLeft: document.getElementById('reelsLeft'),
+  watchBtn: document.getElementById('watchBtn'),
+  checkInBtn: document.getElementById('checkInBtn'),
+  missionsBtn: document.getElementById('missionsBtn'),
+  spinBtn: document.getElementById('spinBtn'),
+  missionsModal: document.getElementById('missionsModal'),
+  missionsList: document.getElementById('missionsList'),
+  wheelModal: document.getElementById('wheelModal'),
+  wheel: document.getElementById('wheel'),
+  spinTheWheelBtn: document.getElementById('spinTheWheelBtn'),
+  spinsAvailable: document.getElementById('spinsAvailable'),
+  prizeModal: document.getElementById('prizeModal'),
+  prizeTitle: document.getElementById('prizeTitle'),
+  prizeText: document.getElementById('prizeText'),
+};
+
+// --- STATE MANAGEMENT ---
+class GameState {
+  constructor() {
+    this.state = {
+      points: 0,
+      spins: 0,
+      streak: 0,
+      level: 1,
+      xp: 0,
+      daily: {
+        lastVisitDate: null,
+        reelsViewedToday: 0,
+        checkedIn: false,
+      },
+      stats: {
+        totalReelsWatched: 0,
+      },
+      missions: {
+        claimed: [],
+      }
+    };
+    this.STORAGE_KEY = 'rv_reel_state_v2';
+  }
+
+  load() {
     try {
-      // Monetag returns a promise — handle success/failure
-      show_10078019().then(()=> {
-        playReel(isBonus);
-      }).catch((err)=> {
-        console.warn('Ad failed or closed:', err);
-        playReel(isBonus);
+      const s = JSON.parse(localStorage.getItem(this.STORAGE_KEY));
+      if (s) {
+        this.state = this.deepMerge(this.state, s);
+      }
+    } catch (e) { console.error("Failed to load state", e); }
+  }
+  
+  save() {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
+    } catch (e) { console.error("Failed to save state", e); }
+  }
+
+  get(key) { return this.state[key]; }
+  set(key, value) { this.state[key] = value; }
+
+  deepMerge(target, source) {
+    for (const key in source) {
+      if (source[key] instanceof Object && key in target) {
+        Object.assign(source[key], this.deepMerge(target[key], source[key]))
+      }
+    }
+    Object.assign(target || {}, source)
+    return target
+  }
+
+  addPoints(amount) {
+    this.state.points += amount;
+    const pointsNeeded = CONFIG.SPIN_COST;
+    if (this.state.points >= pointsNeeded) {
+      const spinsEarned = Math.floor(this.state.points / pointsNeeded);
+      this.state.points %= pointsNeeded;
+      this.addSpins(spinsEarned);
+      UIManager.showToast(`+${spinsEarned} Spin Token!`);
+    }
+  }
+
+  addSpins(amount) { this.state.spins += amount; }
+
+  addXp(amount) {
+    this.state.xp += amount;
+    let xpForNextLevel = this.getXpForLevel(this.state.level);
+    while (this.state.xp >= xpForNextLevel) {
+      this.state.xp -= xpForNextLevel;
+      this.state.level++;
+      const levelUpBonus = 100 * this.state.level;
+      this.addPoints(levelUpBonus);
+      UIManager.showToast(`LEVEL UP! +${levelUpBonus} Bonus Points!`);
+      xpForNextLevel = this.getXpForLevel(this.state.level);
+    }
+  }
+
+  getXpForLevel(level) {
+    return Math.floor(CONFIG.XP_BASE_LEVEL * Math.pow(CONFIG.XP_LEVEL_MULTIPLIER, level - 1));
+  }
+}
+
+// --- UI MANAGER ---
+const UIManager = {
+  updateAll(state) {
+    this.updateHeader(state);
+    this.updateLevel(state);
+    this.updateControls(state);
+  },
+
+  updateHeader(state) {
+    DOMElements.points.textContent = state.get('points');
+    DOMElements.streak.textContent = `${state.get('streak')} 🔥`;
+    DOMElements.spins.textContent = state.get('spins');
+  },
+
+  updateLevel(state) {
+    const level = state.get('level');
+    const xp = state.get('xp');
+    const xpForNext = state.getXpForLevel(level);
+    DOMElements.levelText.textContent = `Level ${level}`;
+    DOMElements.xpText.textContent = `${xp}/${xpForNext} XP`;
+    DOMElements.xpBarInner.style.width = `${(xp / xpForNext) * 100}%`;
+  },
+
+  updateControls(state) {
+    const daily = state.get('daily');
+    const reelsLeft = CONFIG.REELS_PER_DAY - daily.reelsViewedToday;
+    DOMElements.reelsLeft.textContent = reelsLeft;
+    DOMElements.watchBtn.disabled = reelsLeft <= 0;
+    DOMElements.checkInBtn.disabled = daily.checkedIn;
+    DOMElements.checkInBtn.textContent = daily.checkedIn ? 'Checked In!' : 'Daily Check-in';
+    DOMElements.spinBtn.style.display = state.get('spins') > 0 ? 'block' : 'none';
+  },
+
+  showModal(modal) { modal.classList.add('show'); },
+  hideModal(modal) { modal.classList.remove('show'); },
+
+  showToast(text) {
+    const d = document.createElement('div');
+    d.className = 'toast';
+    d.textContent = text;
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 3000);
+  },
+
+  renderMissions(state) {
+    DOMElements.missionsList.innerHTML = '';
+    for (const id in MISSIONS) {
+      const mission = MISSIONS[id];
+      const progress = mission.getProgress(state.state);
+      const isComplete = progress >= mission.goal;
+      const isClaimed = state.get('missions').claimed.includes(id);
+
+      const missionEl = document.createElement('div');
+      missionEl.className = 'mission';
+      missionEl.innerHTML = `
+        <div class="mission-info">
+          <p>${mission.title}</p>
+          <div class="progress">${isClaimed ? 'Completed' : `${progress}/${mission.goal} - ${mission.description}`}</div>
+        </div>
+        <button class="btn btn-claim btn-gold" data-mission-id="${id}" ${isComplete && !isClaimed ? '' : 'disabled'}>
+          ${isClaimed ? 'Claimed' : 'Claim'}
+        </button>
+      `;
+      DOMElements.missionsList.appendChild(missionEl);
+    }
+  }
+};
+
+// --- GAME LOGIC ---
+class Game {
+  constructor() {
+    this.state = new GameState();
+    this.isSpinning = false;
+  }
+
+  init() {
+    this.state.load();
+    this.dailyReset();
+    UIManager.updateAll(this.state);
+    this.bindEvents();
+    console.log("Reel Rewards 2.0 Initialized");
+  }
+
+  dailyReset() {
+    const today = new Date().toDateString();
+    const lastVisit = this.state.get('daily').lastVisitDate;
+    if (lastVisit !== today) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const newStreak = (lastVisit === yesterday.toDateString()) ? this.state.get('streak') + 1 : 1;
+      this.state.set('streak', newStreak);
+      
+      this.state.set('daily', {
+        lastVisitDate: today,
+        reelsViewedToday: 0,
+        checkedIn: false,
       });
-    } catch(e) {
-      console.warn('Ad call threw:', e);
-      playReel(isBonus);
+      this.state.save();
     }
-  } else {
-    // SDK not present — proceed to play
-    playReel(isBonus);
   }
-}
-
-/* ----- play logic: handles mobile safely ---- */
-let waitingForUserUnmute = false;
-function playReel(isBonus=false){
-  // pick random video
-  const url = randFrom(REEL_VIDEOS);
-  placeholder.style.display = 'none';
-  reelVideo.src = url;
-  reelVideo.style.display = 'block';
-
-  // For mobile autoplay policies: attempt to play, if rejected allow user interaction to unmute/play
-  // We will attempt to play with sound because this action originates from a user click (watchBtn)
-  reelVideo.muted = false; // user click initiated - browsers should allow playback with sound
-  const playPromise = reelVideo.play();
-
-  // show center button
-  playPauseBtn.style.display = 'flex';
-  playPauseBtn.textContent = '⏸';
-
-  // if play promise rejected (some mobile may still block until gesture on video), fallback to muted play then wait for user tap
-  if (playPromise && typeof playPromise.catch === 'function') {
-    playPromise.catch((err) => {
-      // try muted autoplay as fallback, then set waiting flag to allow unmute on next tap
-      console.warn('Play with sound blocked, falling back to muted. Error:', err);
-      reelVideo.muted = true;
-      reelVideo.play().catch(()=>{ /* ignore */ });
-      waitingForUserUnmute = true;
-
-      // Listen for user touch/click once to unmute and resume with sound
-      const unlock = () => {
-        try { reelVideo.muted = false; reelVideo.play().catch(()=>{}); } catch(e){}
-        waitingForUserUnmute = false;
-        document.removeEventListener('click', unlock);
-        document.removeEventListener('touchstart', unlock);
-      };
-      document.addEventListener('click', unlock, { once: true });
-      document.addEventListener('touchstart', unlock, { once: true });
+  
+  bindEvents() {
+    DOMElements.watchBtn.addEventListener('click', () => this.playReelSequence());
+    DOMElements.checkInBtn.addEventListener('click', () => this.performCheckIn());
+    DOMElements.missionsBtn.addEventListener('click', () => this.showMissions());
+    DOMElements.spinBtn.addEventListener('click', () => this.showWheel());
+    DOMElements.spinTheWheelBtn.addEventListener('click', () => this.spinWheel());
+    
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => UIManager.hideModal(btn.closest('.modal')));
     });
+
+    DOMElements.missionsList.addEventListener('click', (e) => {
+      if (e.target.matches('[data-mission-id]')) {
+        this.claimMission(e.target.dataset.missionId);
+      }
+    });
+
+    DOMElements.playPauseBtn.onclick = () => {
+      if (!DOMElements.reelVideo.paused) {
+        DOMElements.reelVideo.pause();
+        DOMElements.playPauseBtn.textContent = '▶';
+      } else {
+        DOMElements.reelVideo.play().catch(()=>{});
+        DOMElements.playPauseBtn.textContent = '⏸';
+      }
+    };
   }
 
-  // play/pause handler
-  playPauseBtn.onclick = () => {
-    if (!reelVideo.paused) {
-      reelVideo.pause();
-      playPauseBtn.textContent = '▶';
+  performCheckIn() {
+    if (this.state.get('daily').checkedIn) return;
+    const streak = this.state.get('streak');
+    const reward = CONFIG.DAILY_REWARD_BASE + (streak * CONFIG.DAILY_STREAK_BONUS);
+    this.state.addPoints(reward);
+    this.state.get('daily').checkedIn = true;
+    
+    UIManager.showToast(`+${reward} Points! (Streak x${streak})`);
+    this.state.save();
+    UIManager.updateAll(this.state);
+  }
+
+  showMissions() {
+    UIManager.renderMissions(this.state);
+    UIManager.showModal(DOMElements.missionsModal);
+  }
+
+  claimMission(id) {
+    if (!MISSIONS[id] || this.state.get('missions').claimed.includes(id)) return;
+    const mission = MISSIONS[id];
+    const { type, value } = mission.reward;
+
+    if (type === 'points') this.state.addPoints(value);
+    if (type === 'spins') this.state.addSpins(value);
+
+    this.state.get('missions').claimed.push(id);
+    UIManager.showToast(`Mission Complete! Reward: ${value} ${type}!`);
+    this.state.save();
+    UIManager.renderMissions(this.state);
+    UIManager.updateHeader(this.state);
+    UIManager.updateControls(this.state);
+  }
+
+  showWheel() {
+    if (this.state.get('spins') <= 0) return;
+    DOMElements.spinsAvailable.textContent = this.state.get('spins');
+    UIManager.showModal(DOMElements.wheelModal);
+  }
+
+  spinWheel() {
+    if (this.isSpinning || this.state.get('spins') <= 0) return;
+    this.isSpinning = true;
+    this.state.set('spins', this.state.get('spins') - 1);
+    this.state.save();
+    UIManager.updateHeader(this.state);
+    DOMElements.spinsAvailable.textContent = this.state.get('spins');
+    DOMElements.spinTheWheelBtn.disabled = true;
+
+    const prizeCount = CONFIG.WHEEL_PRIZES.length;
+    const segmentAngle = 360 / prizeCount;
+    const randomStop = Math.floor(Math.random() * prizeCount);
+    const rotation = (360 * 5) + (randomStop * segmentAngle) - (segmentAngle / 2);
+
+    DOMElements.wheel.style.transform = `rotate(${rotation}deg)`;
+
+    setTimeout(() => {
+      this.isSpinning = false;
+      DOMElements.spinTheWheelBtn.disabled = false;
+      DOMElements.wheel.style.transition = 'none';
+      DOMElements.wheel.style.transform = `rotate(${rotation % 360}deg)`;
+      setTimeout(() => { DOMElements.wheel.style.transition = 'transform 5s cubic-bezier(0.25, 1, 0.5, 1)'; }, 50);
+
+      UIManager.hideModal(DOMElements.wheelModal);
+      this.awardPrize(CONFIG.WHEEL_PRIZES[randomStop]);
+    }, 5500);
+  }
+  
+  awardPrize(prize) {
+      if (prize.type === 'points') {
+        this.state.addPoints(prize.value);
+        DOMElements.prizeTitle.textContent = '🎉 You Won!';
+        DOMElements.prizeText.innerHTML = `You received <strong style="color:var(--gold);">${prize.value}</strong> points!`;
+      } else if (prize.type === 'premium') {
+        // *** UPDATED LOGIC HERE ***
+        // Select a random file from the PREMIUM_FILES array
+        const randomFile = CONFIG.PREMIUM_FILES[Math.floor(Math.random() * CONFIG.PREMIUM_FILES.length)];
+        DOMElements.prizeTitle.textContent = '🎁 JACKPOT!';
+        DOMElements.prizeText.innerHTML = `You've unlocked a premium file! <a href="${randomFile}" class="link" target="_blank" rel="noopener">Download Here</a>`;
+      }
+      this.state.save();
+      UIManager.updateHeader(this.state);
+      UIManager.showModal(DOMElements.prizeModal);
+  }
+
+  playReelSequence() {
+    if (typeof show_10078019 === 'function') {
+      try {
+        show_10078019().finally(() => this.playReel());
+      } catch (e) { this.playReel(); }
     } else {
-      reelVideo.play().catch(()=>{});
-      playPauseBtn.textContent = '⏸';
+      this.playReel();
     }
-  };
+  }
 
-  // when finished awarding points etc
-  reelVideo.onended = () => {
-    // hide video, show placeholder
-    reelVideo.style.display = 'none';
-    reelVideo.src = ''; // release resource
-    placeholder.style.display = 'flex';
-    playPauseBtn.style.display = 'none';
+  playReel() {
+    DOMElements.placeholder.style.display = 'none';
+    DOMElements.reelVideo.src = CONFIG.REEL_VIDEOS[Math.floor(Math.random() * CONFIG.REEL_VIDEOS.length)];
+    DOMElements.reelVideo.style.display = 'block';
+    DOMElements.reelVideo.muted = false;
 
-    // award points
-    const pointsWon = 15 + Math.floor(Math.random()*26); // 15-40
-    state.points = (state.points || 0) + pointsWon;
-    if (!isBonus) state.reelsViewedToday = (state.reelsViewedToday || 0) + 1;
+    DOMElements.reelVideo.play().catch(err => {
+      console.warn("Autoplay with sound failed, falling back to muted", err);
+      DOMElements.reelVideo.muted = true;
+      DOMElements.reelVideo.play();
+    });
 
-    // show simple points feedback (small toast)
-    showPointsToast('+' + pointsWon);
+    DOMElements.playPauseBtn.style.display = 'flex';
+    DOMElements.playPauseBtn.textContent = '⏸';
 
-    // check unlock
-    if (state.points >= POINTS_THRESHOLD) {
-      const link = PREMIUM_FILES[Math.floor(Math.random()*PREMIUM_FILES.length)];
-      premiumLink.href = link;
-      unlockModal.classList.add('show');
-      showConfetti();
-      // reset points (per your flow)
-      state.points = 0;
-    }
+    DOMElements.reelVideo.onended = () => {
+      DOMElements.reelVideo.style.display = 'none';
+      DOMElements.reelVideo.src = '';
+      DOMElements.placeholder.style.display = 'flex';
+      DOMElements.playPauseBtn.style.display = 'none';
 
-    saveState();
-    updateUI();
-  };
+      const pointsWon = CONFIG.POINTS_PER_REEL.min + Math.floor(Math.random() * (CONFIG.POINTS_PER_REEL.max - CONFIG.POINTS_PER_REEL.min + 1));
+      this.state.addPoints(pointsWon);
+      this.state.addXp(CONFIG.XP_PER_REEL);
+      this.state.get('daily').reelsViewedToday++;
+      this.state.get('stats').totalReelsWatched++;
+
+      UIManager.showToast(`+${pointsWon} Points & +${CONFIG.XP_PER_REEL} XP`);
+      
+      this.state.save();
+      UIManager.updateAll(this.state);
+    };
+  }
 }
 
-/* small toast for points */
-function showPointsToast(text){
-  const d = document.createElement('div');
-  d.style.position = 'absolute';
-  d.style.left = '50%';
-  d.style.top = '35%';
-  d.style.transform = 'translateX(-50%)';
-  d.style.background = 'linear-gradient(90deg,#ffd54f,#ffb74d)';
-  d.style.color = '#111';
-  d.style.padding = '8px 12px';
-  d.style.borderRadius = '8px';
-  d.style.fontWeight = '700';
-  d.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
-  d.textContent = text;
-  document.body.appendChild(d);
-  setTimeout(()=> d.style.opacity = '0', 1200);
-  setTimeout(()=> d.remove(), 2000);
-}
-
-/* ----- event bindings ----- */
-watchBtn.addEventListener('click', (e) => {
-  // user initiated - call ad then play
-  showAdThenPlay(false);
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+  const game = new Game();
+  game.init();
 });
-
-bonusBtn.addEventListener('click', (e) => {
-  // bonus reel also triggers ad then play
-  showAdThenPlay(true);
-});
-
-/* modal close */
-closeModal.addEventListener('click', () => {
-  unlockModal.classList.remove('show');
-});
-
-/* init */
-(function init(){
-  loadState();
-  dailyResetIfNeeded();
-  updateUI();
-
-  // make sure placeholder & play button visibility are correct on load
-  placeholder.style.display = 'flex';
-  reelVideo.style.display = 'none';
-  playPauseBtn.style.display = 'none';
-
-  // Make video element behave nicely on iOS
-  reelVideo.setAttribute('playsinline', '');
-  reelVideo.setAttribute('webkit-playsinline', '');
-
-  // safety: if Monetag SDK loads late, it's okay - show_10078019 will exist on click if available.
-})();
 </script>
 </body>
-</html>
+</html>```
