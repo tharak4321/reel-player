@@ -11,7 +11,7 @@
 <style>
   :root {
     --bg-dark: #0f1720; --bg-med: #1e293b; --card: #2c3a4f;
-    --accent: #4a90e2; --accent-light: #6aa9f7; --green: #50c878; --red: #ff4757; --gold: #ffd700;
+    --accent: #4a90e2; --accent-light: #6aa9f7; --green: #50c878; --red: #ff4757; --gold: #ffd700; --purple: #9b59b6;
     --text-light: #f1f5f9; --text-muted: #94a3b8;
   }
   html,body { height:100%; margin:0; background:var(--bg-dark); font-family: 'Inter', system-ui, -apple-system, sans-serif; color:var(--text-light); -webkit-font-smoothing:antialiased; }
@@ -36,6 +36,8 @@
   video { width:100%; height:100%; object-fit:cover; display:block; }
   .placeholder { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px; text-align:center; color:var(--text-muted); }
   #playPauseBtn { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:20; width:68px; height:68px; border-radius:50%; border:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.6rem; cursor:pointer; backdrop-filter:blur(4px); display:none; }
+  #unmutePrompt { position:absolute; inset:0; z-index:21; background:rgba(0,0,0,0.6); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; display:none; }
+  #unmutePrompt span { font-size: 2.5rem; }
 
   /* Controls */
   .controls { display:flex; flex-direction:column; gap:10px; }
@@ -45,6 +47,7 @@
   .btn-primary { background:linear-gradient(90deg, var(--accent), var(--accent-light)); color:#fff; box-shadow: 0 4px 15px -5px var(--accent); }
   .btn-green { background:linear-gradient(90deg, var(--green), #6ade95); color:#fff; box-shadow: 0 4px 15px -5px var(--green); }
   .btn-gold { background:linear-gradient(90deg, var(--gold), #ffe566); color:#111; box-shadow: 0 4px 15px -5px var(--gold); }
+  .btn-purple { background:linear-gradient(90deg, var(--purple), #be72d8); color:#fff; box-shadow: 0 4px 15px -5px var(--purple); }
   .btn-secondary { background:var(--card); color:var(--text-light); }
 
   /* Modal System */
@@ -60,7 +63,11 @@
   #wheel { width:100%; height:100%; background-image:url('https://i.imgur.com/c6THaQ1.png'); background-size:cover; transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1); }
   #wheel-pointer { position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:40px; height:50px; background-image:url('https://i.imgur.com/v1tFN0Q.png'); background-size:contain; background-repeat: no-repeat; }
 
-  /* Missions */
+  /* Missions & "How to Win" */
+  .list-card { padding: 12px 16px; }
+  .list-card h4 { margin:0 0 10px; text-align:center; }
+  .list-card ul { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; }
+  .list-card ul li { background: var(--bg-dark); padding: 8px 10px; border-radius: 6px; font-size:0.9rem; }
   #missionsList { text-align:left; max-height: 250px; overflow-y: auto; padding-right:10px; }
   .mission { background:var(--bg-dark); padding:10px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
   .mission-info p { margin:0; color:var(--text-light); font-size:0.9rem; }
@@ -107,12 +114,16 @@
       <video id="reelVideo" playsinline webkit-playsinline preload="metadata"></video>
       <div class="placeholder" id="placeholder">
         <div>
-          <strong style="font-size:1.2rem;">Become a Reel Master!</strong>
+          <strong style="font-size:1.2rem;">Welcome to Reel Rewards!</strong>
           <div style="height:8px"></div>
-          <div class="small">Watch reels to gain XP, level up, and earn spins on the prize wheel.</div>
+          <div class="small">Press "Watch Reel" below to begin.</div>
         </div>
       </div>
       <button id="playPauseBtn" aria-label="Play or Pause">▶</button>
+      <div id="unmutePrompt">
+        <span>🔇</span>
+        <div>Tap to Unmute</div>
+      </div>
     </div>
 
     <!-- Controls -->
@@ -122,7 +133,20 @@
         <button id="missionsBtn" class="btn btn-secondary">Missions</button>
       </div>
       <button id="watchBtn" class="btn btn-primary">Watch Reel (<span id="reelsLeft">5</span> left)</button>
+      <button id="bonusReelBtn" class="btn btn-purple" style="display:none;">Bonus Reel (Watch Ad)</button>
       <button id="spinBtn" class="btn btn-gold" style="display:none;">Spin the Wheel!</button>
+    </div>
+
+    <!-- How to Win Guide -->
+    <div class="card list-card">
+      <h4>🏆 How to Win the Prize 🏆</h4>
+      <ul>
+        <li>Watch daily reels to earn Points & XP.</li>
+        <li>Check-in daily to build a streak for bonus points.</li>
+        <li>Complete Missions for extra rewards.</li>
+        <li>Collect 500 points to earn a Spin Token.</li>
+        <li>Use Spin Tokens on the Prize Wheel to win the jackpot file!</li>
+      </ul>
     </div>
   </div>
 
@@ -152,15 +176,6 @@
 
 <script>
 'use strict';
-/*
-  Reel Rewards 2.0 - Advanced Gamification
-  - Level system with XP
-  - Daily check-in with increasing streak rewards
-  - Missions system for guided engagement
-  - Prize wheel for variable, exciting rewards
-  - Cleaner, more modular code structure
-*/
-
 // --- CONFIGURATION ---
 const CONFIG = {
   REELS_PER_DAY: 5,
@@ -168,11 +183,10 @@ const CONFIG = {
   POINTS_PER_REEL: { min: 10, max: 30 },
   XP_BASE_LEVEL: 100,
   XP_LEVEL_MULTIPLIER: 1.2,
-  SPIN_COST: 500, // Points needed to earn 1 spin
+  SPIN_COST: 500,
   DAILY_REWARD_BASE: 50,
   DAILY_STREAK_BONUS: 25,
   REEL_VIDEOS: [
-    // Your new videos added here
     'https://h2.myhostdata.space/videos/Bbyvannessa/13rxa5b.mp4',
     'https://h2.myhostdata.space/videos/Babbybrunettee/13795w5.mp4',
     'https://h2.myhostdata.space/videos/littlebootybabe/y0wfeu.mp4',
@@ -181,7 +195,6 @@ const CONFIG = {
     'https://h2.myhostdata.space/videos/RubyLeigh456/14levnn.mp4',
     'https://h2.myhostdata.space/videos/diana_web/14fo7an.mp4',
     'https://h2.myhostdata.space/videos/baby_moonn/14h5xm8.mp4',
-    // Original videos
     'https://desidamaka.site/wp-content/uploads/2025/10/video_10892@27-09-2023_20-44-59.mp4',
     'https://desidamaka.site/wp-content/uploads/2025/10/video_10891@27-09-2023_20-44-55.mp4',
     'https://desidamaka.site/wp-content/uploads/2025/10/video_10890@27-09-2023_20-44-41.mp4',
@@ -210,7 +223,6 @@ const CONFIG = {
     'https://desidamaka.site/wp-content/uploads/2025/10/video_11855@10-11-2023_19-45-12.mp4',
     'https://desidamaka.site/wp-content/uploads/2025/10/video_11845@10-11-2023_19-45-00.mp4'
   ],
-  // Your new prize files
   PREMIUM_FILES: [
     'https://desidamaka.site/wp-content/uploads/2025/10/GymGInsta.zip',
     'https://desidamaka.site/wp-content/uploads/2025/10/Album-300.zip'
@@ -219,7 +231,7 @@ const CONFIG = {
     { type: 'points', value: 50, label: '50 PTS' },
     { type: 'points', value: 150, label: '150 PTS' },
     { type: 'points', value: 75, label: '75 PTS' },
-    { type: 'premium', value: 1, label: '🎁 FILE' }, // This is the jackpot prize
+    { type: 'premium', value: 1, label: '🎁 FILE' },
     { type: 'points', value: 100, label: '100 PTS' },
     { type: 'points', value: 250, label: '250 PTS' },
     { type: 'points', value: 25, label: '25 PTS' },
@@ -228,30 +240,11 @@ const CONFIG = {
 };
 
 const MISSIONS = {
-  watch10: {
-    title: "Reel Rookie",
-    description: "Watch 10 reels in total.",
-    goal: 10,
-    reward: { type: 'points', value: 100 },
-    getProgress: (state) => state.stats.totalReelsWatched,
-  },
-  reachLevel5: {
-    title: "Leveling Up",
-    description: "Reach Level 5.",
-    goal: 5,
-    reward: { type: 'spins', value: 1 },
-    getProgress: (state) => state.level,
-  },
-  streak3: {
-    title: "Consistent Viewer",
-    description: "Achieve a 3-day login streak.",
-    goal: 3,
-    reward: { type: 'points', value: 250 },
-    getProgress: (state) => state.streak,
-  }
+  watch10: { title: "Reel Rookie", description: "Watch 10 reels in total.", goal: 10, reward: { type: 'points', value: 100 }, getProgress: (state) => state.stats.totalReelsWatched, },
+  reachLevel5: { title: "Leveling Up", description: "Reach Level 5.", goal: 5, reward: { type: 'spins', value: 1 }, getProgress: (state) => state.level, },
+  streak3: { title: "Consistent Viewer", description: "Achieve a 3-day login streak.", goal: 3, reward: { type: 'points', value: 250 }, getProgress: (state) => state.streak, }
 };
 
-// --- DOM ELEMENTS ---
 const DOMElements = {
   points: document.getElementById('points'),
   streak: document.getElementById('streak'),
@@ -262,8 +255,10 @@ const DOMElements = {
   reelVideo: document.getElementById('reelVideo'),
   placeholder: document.getElementById('placeholder'),
   playPauseBtn: document.getElementById('playPauseBtn'),
+  unmutePrompt: document.getElementById('unmutePrompt'),
   reelsLeft: document.getElementById('reelsLeft'),
   watchBtn: document.getElementById('watchBtn'),
+  bonusReelBtn: document.getElementById('bonusReelBtn'),
   checkInBtn: document.getElementById('checkInBtn'),
   missionsBtn: document.getElementById('missionsBtn'),
   spinBtn: document.getElementById('spinBtn'),
@@ -278,352 +273,57 @@ const DOMElements = {
   prizeText: document.getElementById('prizeText'),
 };
 
-// --- STATE MANAGEMENT ---
 class GameState {
-  constructor() {
-    this.state = {
-      points: 0,
-      spins: 0,
-      streak: 0,
-      level: 1,
-      xp: 0,
-      daily: {
-        lastVisitDate: null,
-        reelsViewedToday: 0,
-        checkedIn: false,
-      },
-      stats: {
-        totalReelsWatched: 0,
-      },
-      missions: {
-        claimed: [],
-      }
-    };
-    this.STORAGE_KEY = 'rv_reel_state_v2';
-  }
-
-  load() {
-    try {
-      const s = JSON.parse(localStorage.getItem(this.STORAGE_KEY));
-      if (s) {
-        this.state = this.deepMerge(this.state, s);
-      }
-    } catch (e) { console.error("Failed to load state", e); }
-  }
-  
-  save() {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state));
-    } catch (e) { console.error("Failed to save state", e); }
-  }
-
+  constructor() { this.state = { points: 0, spins: 0, streak: 0, level: 1, xp: 0, daily: { lastVisitDate: null, reelsViewedToday: 0, checkedIn: false, }, stats: { totalReelsWatched: 0, }, missions: { claimed: [], } }; this.STORAGE_KEY = 'rv_reel_state_v2'; }
+  load() { try { const s = JSON.parse(localStorage.getItem(this.STORAGE_KEY)); if (s) { this.state = this.deepMerge(this.state, s); } } catch (e) { console.error("Failed to load state", e); } }
+  save() { try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.state)); } catch (e) { console.error("Failed to save state", e); } }
   get(key) { return this.state[key]; }
   set(key, value) { this.state[key] = value; }
-
-  deepMerge(target, source) {
-    for (const key in source) {
-      if (source[key] instanceof Object && key in target) {
-        Object.assign(source[key], this.deepMerge(target[key], source[key]))
-      }
-    }
-    Object.assign(target || {}, source)
-    return target
-  }
-
-  addPoints(amount) {
-    this.state.points += amount;
-    const pointsNeeded = CONFIG.SPIN_COST;
-    if (this.state.points >= pointsNeeded) {
-      const spinsEarned = Math.floor(this.state.points / pointsNeeded);
-      this.state.points %= pointsNeeded;
-      this.addSpins(spinsEarned);
-      UIManager.showToast(`+${spinsEarned} Spin Token!`);
-    }
-  }
-
+  deepMerge(target, source) { for (const key in source) { if (source[key] instanceof Object && key in target) { Object.assign(source[key], this.deepMerge(target[key], source[key])) } } Object.assign(target || {}, source); return target; }
+  addPoints(amount) { this.state.points += amount; const pointsNeeded = CONFIG.SPIN_COST; if (this.state.points >= pointsNeeded) { const spinsEarned = Math.floor(this.state.points / pointsNeeded); this.state.points %= pointsNeeded; this.addSpins(spinsEarned); UIManager.showToast(`+${spinsEarned} Spin Token!`); } }
   addSpins(amount) { this.state.spins += amount; }
-
-  addXp(amount) {
-    this.state.xp += amount;
-    let xpForNextLevel = this.getXpForLevel(this.state.level);
-    while (this.state.xp >= xpForNextLevel) {
-      this.state.xp -= xpForNextLevel;
-      this.state.level++;
-      const levelUpBonus = 100 * this.state.level;
-      this.addPoints(levelUpBonus);
-      UIManager.showToast(`LEVEL UP! +${levelUpBonus} Bonus Points!`);
-      xpForNextLevel = this.getXpForLevel(this.state.level);
-    }
-  }
-
-  getXpForLevel(level) {
-    return Math.floor(CONFIG.XP_BASE_LEVEL * Math.pow(CONFIG.XP_LEVEL_MULTIPLIER, level - 1));
-  }
+  addXp(amount) { this.state.xp += amount; let xpForNextLevel = this.getXpForLevel(this.state.level); while (this.state.xp >= xpForNextLevel) { this.state.xp -= xpForNextLevel; this.state.level++; const levelUpBonus = 100 * this.state.level; this.addPoints(levelUpBonus); UIManager.showToast(`LEVEL UP! +${levelUpBonus} Bonus Points!`); xpForNextLevel = this.getXpForLevel(this.state.level); } }
+  getXpForLevel(level) { return Math.floor(CONFIG.XP_BASE_LEVEL * Math.pow(CONFIG.XP_LEVEL_MULTIPLIER, level - 1)); }
 }
 
-// --- UI MANAGER ---
 const UIManager = {
-  updateAll(state) {
-    this.updateHeader(state);
-    this.updateLevel(state);
-    this.updateControls(state);
-  },
-
-  updateHeader(state) {
-    DOMElements.points.textContent = state.get('points');
-    DOMElements.streak.textContent = `${state.get('streak')} 🔥`;
-    DOMElements.spins.textContent = state.get('spins');
-  },
-
-  updateLevel(state) {
-    const level = state.get('level');
-    const xp = state.get('xp');
-    const xpForNext = state.getXpForLevel(level);
-    DOMElements.levelText.textContent = `Level ${level}`;
-    DOMElements.xpText.textContent = `${xp}/${xpForNext} XP`;
-    DOMElements.xpBarInner.style.width = `${(xp / xpForNext) * 100}%`;
-  },
-
-  updateControls(state) {
-    const daily = state.get('daily');
-    const reelsLeft = CONFIG.REELS_PER_DAY - daily.reelsViewedToday;
-    DOMElements.reelsLeft.textContent = reelsLeft;
-    DOMElements.watchBtn.disabled = reelsLeft <= 0;
-    DOMElements.checkInBtn.disabled = daily.checkedIn;
-    DOMElements.checkInBtn.textContent = daily.checkedIn ? 'Checked In!' : 'Daily Check-in';
-    DOMElements.spinBtn.style.display = state.get('spins') > 0 ? 'block' : 'none';
-  },
-
+  updateAll(state) { this.updateHeader(state); this.updateLevel(state); this.updateControls(state); },
+  updateHeader(state) { DOMElements.points.textContent = state.get('points'); DOMElements.streak.textContent = `${state.get('streak')} 🔥`; DOMElements.spins.textContent = state.get('spins'); },
+  updateLevel(state) { const level = state.get('level'); const xp = state.get('xp'); const xpForNext = state.getXpForLevel(level); DOMElements.levelText.textContent = `Level ${level}`; DOMElements.xpText.textContent = `${xp}/${xpForNext} XP`; DOMElements.xpBarInner.style.width = `${(xp / xpForNext) * 100}%`; },
+  updateControls(state) { const daily = state.get('daily'); const reelsLeft = CONFIG.REELS_PER_DAY - daily.reelsViewedToday; DOMElements.reelsLeft.textContent = reelsLeft; DOMElements.watchBtn.disabled = reelsLeft <= 0; DOMElements.watchBtn.style.display = reelsLeft > 0 ? 'block' : 'none'; DOMElements.bonusReelBtn.style.display = reelsLeft <= 0 ? 'block' : 'none'; DOMElements.checkInBtn.disabled = daily.checkedIn; DOMElements.checkInBtn.textContent = daily.checkedIn ? 'Checked In!' : 'Daily Check-in'; DOMElements.spinBtn.style.display = state.get('spins') > 0 ? 'block' : 'none'; },
   showModal(modal) { modal.classList.add('show'); },
   hideModal(modal) { modal.classList.remove('show'); },
-
-  showToast(text) {
-    const d = document.createElement('div');
-    d.className = 'toast';
-    d.textContent = text;
-    document.body.appendChild(d);
-    setTimeout(() => d.remove(), 3000);
-  },
-
-  renderMissions(state) {
-    DOMElements.missionsList.innerHTML = '';
-    for (const id in MISSIONS) {
-      const mission = MISSIONS[id];
-      const progress = mission.getProgress(state.state);
-      const isComplete = progress >= mission.goal;
-      const isClaimed = state.get('missions').claimed.includes(id);
-
-      const missionEl = document.createElement('div');
-      missionEl.className = 'mission';
-      missionEl.innerHTML = `
-        <div class="mission-info">
-          <p>${mission.title}</p>
-          <div class="progress">${isClaimed ? 'Completed' : `${progress}/${mission.goal} - ${mission.description}`}</div>
-        </div>
-        <button class="btn btn-claim btn-gold" data-mission-id="${id}" ${isComplete && !isClaimed ? '' : 'disabled'}>
-          ${isClaimed ? 'Claimed' : 'Claim'}
-        </button>
-      `;
-      DOMElements.missionsList.appendChild(missionEl);
-    }
-  }
+  showToast(text) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = text; document.body.appendChild(d); setTimeout(() => d.remove(), 3000); },
+  renderMissions(state) { DOMElements.missionsList.innerHTML = ''; for (const id in MISSIONS) { const mission = MISSIONS[id]; const progress = mission.getProgress(state.state); const isComplete = progress >= mission.goal; const isClaimed = state.get('missions').claimed.includes(id); const missionEl = document.createElement('div'); missionEl.className = 'mission'; missionEl.innerHTML = `<div class="mission-info"><p>${mission.title}</p><div class="progress">${isClaimed ? 'Completed' : `${progress}/${mission.goal} - ${mission.description}`}</div></div><button class="btn btn-claim btn-gold" data-mission-id="${id}" ${isComplete && !isClaimed ? '' : 'disabled'}>${isClaimed ? 'Claimed' : 'Claim'}</button>`; DOMElements.missionsList.appendChild(missionEl); } }
 };
 
-// --- GAME LOGIC ---
 class Game {
-  constructor() {
-    this.state = new GameState();
-    this.isSpinning = false;
-  }
-
-  init() {
-    this.state.load();
-    this.dailyReset();
-    UIManager.updateAll(this.state);
-    this.bindEvents();
-    console.log("Reel Rewards 2.0 Initialized");
-  }
-
-  dailyReset() {
-    const today = new Date().toDateString();
-    const lastVisit = this.state.get('daily').lastVisitDate;
-    if (lastVisit !== today) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const newStreak = (lastVisit === yesterday.toDateString()) ? this.state.get('streak') + 1 : 1;
-      this.state.set('streak', newStreak);
-      
-      this.state.set('daily', {
-        lastVisitDate: today,
-        reelsViewedToday: 0,
-        checkedIn: false,
-      });
-      this.state.save();
-    }
-  }
-  
+  constructor() { this.state = new GameState(); this.isSpinning = false; }
+  init() { this.state.load(); this.dailyReset(); UIManager.updateAll(this.state); this.bindEvents(); console.log("Reel Rewards 2.0 Initialized"); }
+  dailyReset() { const today = new Date().toDateString(); const lastVisit = this.state.get('daily').lastVisitDate; if (lastVisit !== today) { const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); const newStreak = (lastVisit === yesterday.toDateString()) ? this.state.get('streak') + 1 : 1; this.state.set('streak', newStreak); this.state.set('daily', { lastVisitDate: today, reelsViewedToday: 0, checkedIn: false, }); this.state.save(); } }
   bindEvents() {
-    DOMElements.watchBtn.addEventListener('click', () => this.playReelSequence());
+    DOMElements.watchBtn.addEventListener('click', () => this.playReelSequence(false));
+    DOMElements.bonusReelBtn.addEventListener('click', () => this.playReelSequence(true));
     DOMElements.checkInBtn.addEventListener('click', () => this.performCheckIn());
     DOMElements.missionsBtn.addEventListener('click', () => this.showMissions());
     DOMElements.spinBtn.addEventListener('click', () => this.showWheel());
     DOMElements.spinTheWheelBtn.addEventListener('click', () => this.spinWheel());
-    
-    document.querySelectorAll('[data-close]').forEach(btn => {
-      btn.addEventListener('click', () => UIManager.hideModal(btn.closest('.modal')));
-    });
-
-    DOMElements.missionsList.addEventListener('click', (e) => {
-      if (e.target.matches('[data-mission-id]')) {
-        this.claimMission(e.target.dataset.missionId);
-      }
-    });
-
-    DOMElements.playPauseBtn.onclick = () => {
-      if (!DOMElements.reelVideo.paused) {
-        DOMElements.reelVideo.pause();
-        DOMElements.playPauseBtn.textContent = '▶';
-      } else {
-        DOMElements.reelVideo.play().catch(()=>{});
-        DOMElements.playPauseBtn.textContent = '⏸';
-      }
-    };
+    DOMElements.unmutePrompt.addEventListener('click', () => { DOMElements.reelVideo.muted = false; DOMElements.unmutePrompt.style.display = 'none'; });
+    document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => UIManager.hideModal(btn.closest('.modal'))));
+    DOMElements.missionsList.addEventListener('click', (e) => { if (e.target.matches('[data-mission-id]')) { this.claimMission(e.target.dataset.missionId); } });
+    DOMElements.playPauseBtn.onclick = () => { if (!DOMElements.reelVideo.paused) { DOMElements.reelVideo.pause(); DOMElements.playPauseBtn.textContent = '▶'; } else { DOMElements.reelVideo.play().catch(()=>{}); DOMElements.playPauseBtn.textContent = '⏸'; } };
   }
-
-  performCheckIn() {
-    if (this.state.get('daily').checkedIn) return;
-    const streak = this.state.get('streak');
-    const reward = CONFIG.DAILY_REWARD_BASE + (streak * CONFIG.DAILY_STREAK_BONUS);
-    this.state.addPoints(reward);
-    this.state.get('daily').checkedIn = true;
-    
-    UIManager.showToast(`+${reward} Points! (Streak x${streak})`);
-    this.state.save();
-    UIManager.updateAll(this.state);
-  }
-
-  showMissions() {
-    UIManager.renderMissions(this.state);
-    UIManager.showModal(DOMElements.missionsModal);
-  }
-
-  claimMission(id) {
-    if (!MISSIONS[id] || this.state.get('missions').claimed.includes(id)) return;
-    const mission = MISSIONS[id];
-    const { type, value } = mission.reward;
-
-    if (type === 'points') this.state.addPoints(value);
-    if (type === 'spins') this.state.addSpins(value);
-
-    this.state.get('missions').claimed.push(id);
-    UIManager.showToast(`Mission Complete! Reward: ${value} ${type}!`);
-    this.state.save();
-    UIManager.renderMissions(this.state);
-    UIManager.updateHeader(this.state);
-    UIManager.updateControls(this.state);
-  }
-
-  showWheel() {
-    if (this.state.get('spins') <= 0) return;
-    DOMElements.spinsAvailable.textContent = this.state.get('spins');
-    UIManager.showModal(DOMElements.wheelModal);
-  }
-
-  spinWheel() {
-    if (this.isSpinning || this.state.get('spins') <= 0) return;
-    this.isSpinning = true;
-    this.state.set('spins', this.state.get('spins') - 1);
-    this.state.save();
-    UIManager.updateHeader(this.state);
-    DOMElements.spinsAvailable.textContent = this.state.get('spins');
-    DOMElements.spinTheWheelBtn.disabled = true;
-
-    const prizeCount = CONFIG.WHEEL_PRIZES.length;
-    const segmentAngle = 360 / prizeCount;
-    const randomStop = Math.floor(Math.random() * prizeCount);
-    const rotation = (360 * 5) + (randomStop * segmentAngle) - (segmentAngle / 2);
-
-    DOMElements.wheel.style.transform = `rotate(${rotation}deg)`;
-
-    setTimeout(() => {
-      this.isSpinning = false;
-      DOMElements.spinTheWheelBtn.disabled = false;
-      DOMElements.wheel.style.transition = 'none';
-      DOMElements.wheel.style.transform = `rotate(${rotation % 360}deg)`;
-      setTimeout(() => { DOMElements.wheel.style.transition = 'transform 5s cubic-bezier(0.25, 1, 0.5, 1)'; }, 50);
-
-      UIManager.hideModal(DOMElements.wheelModal);
-      this.awardPrize(CONFIG.WHEEL_PRIZES[randomStop]);
-    }, 5500);
-  }
-  
-  awardPrize(prize) {
-      if (prize.type === 'points') {
-        this.state.addPoints(prize.value);
-        DOMElements.prizeTitle.textContent = '🎉 You Won!';
-        DOMElements.prizeText.innerHTML = `You received <strong style="color:var(--gold);">${prize.value}</strong> points!`;
-      } else if (prize.type === 'premium') {
-        // *** UPDATED LOGIC HERE ***
-        // Select a random file from the PREMIUM_FILES array
-        const randomFile = CONFIG.PREMIUM_FILES[Math.floor(Math.random() * CONFIG.PREMIUM_FILES.length)];
-        DOMElements.prizeTitle.textContent = '🎁 JACKPOT!';
-        DOMElements.prizeText.innerHTML = `You've unlocked a premium file! <a href="${randomFile}" class="link" target="_blank" rel="noopener">Download Here</a>`;
-      }
-      this.state.save();
-      UIManager.updateHeader(this.state);
-      UIManager.showModal(DOMElements.prizeModal);
-  }
-
-  playReelSequence() {
-    if (typeof show_10078019 === 'function') {
-      try {
-        show_10078019().finally(() => this.playReel());
-      } catch (e) { this.playReel(); }
-    } else {
-      this.playReel();
-    }
-  }
-
-  playReel() {
-    DOMElements.placeholder.style.display = 'none';
-    DOMElements.reelVideo.src = CONFIG.REEL_VIDEOS[Math.floor(Math.random() * CONFIG.REEL_VIDEOS.length)];
-    DOMElements.reelVideo.style.display = 'block';
-    DOMElements.reelVideo.muted = false;
-
-    DOMElements.reelVideo.play().catch(err => {
-      console.warn("Autoplay with sound failed, falling back to muted", err);
-      DOMElements.reelVideo.muted = true;
-      DOMElements.reelVideo.play();
-    });
-
-    DOMElements.playPauseBtn.style.display = 'flex';
-    DOMElements.playPauseBtn.textContent = '⏸';
-
-    DOMElements.reelVideo.onended = () => {
-      DOMElements.reelVideo.style.display = 'none';
-      DOMElements.reelVideo.src = '';
-      DOMElements.placeholder.style.display = 'flex';
-      DOMElements.playPauseBtn.style.display = 'none';
-
-      const pointsWon = CONFIG.POINTS_PER_REEL.min + Math.floor(Math.random() * (CONFIG.POINTS_PER_REEL.max - CONFIG.POINTS_PER_REEL.min + 1));
-      this.state.addPoints(pointsWon);
-      this.state.addXp(CONFIG.XP_PER_REEL);
-      this.state.get('daily').reelsViewedToday++;
-      this.state.get('stats').totalReelsWatched++;
-
-      UIManager.showToast(`+${pointsWon} Points & +${CONFIG.XP_PER_REEL} XP`);
-      
-      this.state.save();
-      UIManager.updateAll(this.state);
-    };
-  }
+  performCheckIn() { if (this.state.get('daily').checkedIn) return; const streak = this.state.get('streak'); const reward = CONFIG.DAILY_REWARD_BASE + (streak * CONFIG.DAILY_STREAK_BONUS); this.state.addPoints(reward); this.state.get('daily').checkedIn = true; UIManager.showToast(`+${reward} Points! (Streak x${streak})`); this.state.save(); UIManager.updateAll(this.state); }
+  showMissions() { UIManager.renderMissions(this.state); UIManager.showModal(DOMElements.missionsModal); }
+  claimMission(id) { if (!MISSIONS[id] || this.state.get('missions').claimed.includes(id)) return; const mission = MISSIONS[id]; const { type, value } = mission.reward; if (type === 'points') this.state.addPoints(value); if (type === 'spins') this.state.addSpins(value); this.state.get('missions').claimed.push(id); UIManager.showToast(`Mission Complete! Reward: ${value} ${type}!`); this.state.save(); UIManager.renderMissions(this.state); UIManager.updateHeader(this.state); UIManager.updateControls(this.state); }
+  showWheel() { if (this.state.get('spins') <= 0) return; DOMElements.spinsAvailable.textContent = this.state.get('spins'); UIManager.showModal(DOMElements.wheelModal); }
+  spinWheel() { if (this.isSpinning || this.state.get('spins') <= 0) return; this.isSpinning = true; this.state.set('spins', this.state.get('spins') - 1); this.state.save(); UIManager.updateHeader(this.state); DOMElements.spinsAvailable.textContent = this.state.get('spins'); DOMElements.spinTheWheelBtn.disabled = true; const prizeCount = CONFIG.WHEEL_PRIZES.length; const segmentAngle = 360 / prizeCount; const randomStop = Math.floor(Math.random() * prizeCount); const rotation = (360 * 5) + (randomStop * segmentAngle) - (segmentAngle / 2); DOMElements.wheel.style.transform = `rotate(${rotation}deg)`; setTimeout(() => { this.isSpinning = false; DOMElements.spinTheWheelBtn.disabled = false; DOMElements.wheel.style.transition = 'none'; DOMElements.wheel.style.transform = `rotate(${rotation % 360}deg)`; setTimeout(() => { DOMElements.wheel.style.transition = 'transform 5s cubic-bezier(0.25, 1, 0.5, 1)'; }, 50); UIManager.hideModal(DOMElements.wheelModal); this.awardPrize(CONFIG.WHEEL_PRIZES[randomStop]); }, 5500); }
+  awardPrize(prize) { if (prize.type === 'points') { this.state.addPoints(prize.value); DOMElements.prizeTitle.textContent = '🎉 You Won!'; DOMElements.prizeText.innerHTML = `You received <strong style="color:var(--gold);">${prize.value}</strong> points!`; } else if (prize.type === 'premium') { const randomFile = CONFIG.PREMIUM_FILES[Math.floor(Math.random() * CONFIG.PREMIUM_FILES.length)]; DOMElements.prizeTitle.textContent = '🎁 JACKPOT!'; DOMElements.prizeText.innerHTML = `You've unlocked a premium file! <a href="${randomFile}" class="link" target="_blank" rel="noopener">Download Here</a>`; } this.state.save(); UIManager.updateHeader(this.state); UIManager.showModal(DOMElements.prizeModal); }
+  playReelSequence(isBonus = false) { if (typeof show_10078019 === 'function') { try { show_10078019().finally(() => this.playReel(isBonus)); } catch (e) { this.playReel(isBonus); } } else { this.playReel(isBonus); } }
+  playReel(isBonus) { DOMElements.placeholder.style.display = 'none'; DOMElements.reelVideo.src = CONFIG.REEL_VIDEOS[Math.floor(Math.random() * CONFIG.REEL_VIDEOS.length)]; DOMElements.reelVideo.style.display = 'block'; DOMElements.reelVideo.muted = false; DOMElements.unmutePrompt.style.display = 'none'; DOMElements.reelVideo.play().catch(err => { console.warn("Autoplay with sound failed, falling back to muted", err); DOMElements.reelVideo.muted = true; DOMElements.unmutePrompt.style.display = 'flex'; DOMElements.reelVideo.play(); }); DOMElements.playPauseBtn.style.display = 'flex'; DOMElements.playPauseBtn.textContent = '⏸'; DOMElements.reelVideo.onended = () => { DOMElements.reelVideo.style.display = 'none'; DOMElements.reelVideo.src = ''; DOMElements.placeholder.style.display = 'flex'; DOMElements.playPauseBtn.style.display = 'none'; DOMElements.unmutePrompt.style.display = 'none'; const pointsWon = CONFIG.POINTS_PER_REEL.min + Math.floor(Math.random() * (CONFIG.POINTS_PER_REEL.max - CONFIG.POINTS_PER_REEL.min + 1)); this.state.addPoints(pointsWon); this.state.addXp(CONFIG.XP_PER_REEL); if (!isBonus) { this.state.get('daily').reelsViewedToday++; } this.state.get('stats').totalReelsWatched++; UIManager.showToast(`+${pointsWon} Points & +${CONFIG.XP_PER_REEL} XP`); this.state.save(); UIManager.updateAll(this.state); }; }
 }
 
-// --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-  const game = new Game();
-  game.init();
-});
+document.addEventListener('DOMContentLoaded', () => { const game = new Game(); game.init(); });
 </script>
 </body>
-</html>```
+</html>
